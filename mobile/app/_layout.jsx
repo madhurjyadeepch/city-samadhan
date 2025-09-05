@@ -1,45 +1,39 @@
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+// app/_layout.jsx
 
-export default function Layout() {
+import { Stack } from "expo-router";
+
+export default function RootLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: "#007AFF" }}>
-      <Tabs.Screen
-        name="index"
+    <Stack>
+      {/* The main tab navigator */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* The screen for creating a new report, presented as a modal */}
+      <Stack.Screen
+        name="report-create"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
+          headerShown: false,
+          presentation: "modal",
         }}
       />
-      <Tabs.Screen
-        name="reports"
+
+      {/* Screen for viewing the details of a user's own report */}
+      <Stack.Screen
+        name="my-reports/[id]"
         options={{
-          title: "My Reports",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
+          headerShown: false,
+          presentation: "modal",
         }}
       />
-      <Tabs.Screen
-        name="community"
+
+      {/* Screen for viewing the details of a community report */}
+      <Stack.Screen
+        name="community/[id]"
         options={{
-          title: "Community",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
-          ),
+          headerShown: false,
+          presentation: "modal",
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    </Stack>
   );
 }

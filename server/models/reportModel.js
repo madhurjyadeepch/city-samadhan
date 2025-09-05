@@ -10,7 +10,7 @@ const reportSchema = mongoose.Schema({
     required: [true, "A report must have a description"],
   },
   author: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.ObjectId,
     ref: "User",
     required: true,
   },

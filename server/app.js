@@ -2,6 +2,7 @@ const express = require("express");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
+const reportRouter = require("./routes/reportRoutes");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/reports", reportRouter);
 
 // app.all("*", (req, res, next) => {
 //   next(

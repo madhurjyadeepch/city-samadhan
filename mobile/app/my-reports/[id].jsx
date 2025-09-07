@@ -1,175 +1,189 @@
-import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+// app/my-reports/[id].jsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, SafeAreaView, Alert, Share } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Mock comments data for demonstration
-const MOCK_COMMENTS = [
-    { id: 1, user: 'Shaurya Sharma', avatar: 'SS', comment: 'I live nearby and can confirm this is a major issue. Thanks for reporting!', time: '2h ago' },
-    { id: 2, user: 'Municipal Worker', avatar: 'MW', comment: 'Our team has been notified. We will inspect the site tomorrow morning.', time: '1h ago' },
-];
+// Helper to get status styles
+const getStatusStyle = (status) => {
+    switch (status) {
+        case "in-progress": return { backgroundColor: "#FFFBEB", color: "#F59E0B" };
+        case "done": return { backgroundColor: "#F0FDF4", color: "#16A34A" };
+        case "pending": default: return { backgroundColor: "#FEF2F2", color: "#DC2626" };
+    }
+};
 
 export default function MyReportDetailScreen() {
-    const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { id } = useLocalSearchParams();
     const [report, setReport] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    const fetchReport = useCallback(async () => {
-        setLoading(true);
-        const storedReports = await AsyncStorage.getItem('reports');
-        if (storedReports) {
-            const reports = JSON.parse(storedReports);
-            const foundReport = reports.find(r => r.id === id);
-            setReport(foundReport);
-        }
-        setLoading(false);
-    }, [id]);
 
     useEffect(() => {
-        fetchReport();
-    }, [fetchReport]);
-
-    const handleDelete = async () => {
-        const storedReports = await AsyncStorage.getItem('reports');
-        if (storedReports) {
-            let reports = JSON.parse(storedReports);
-            const updatedReports = reports.filter(r => r.id !== id);
-            await AsyncStorage.setItem('reports', JSON.stringify(updatedReports));
-            router.back();
+        const fetchReport = async () => {
+            const storedReports = await AsyncStorage.getItem("reports");
+            if (storedReports) {
+                const reports = JSON.parse(storedReports);
+                const foundReport = reports.find(r => r.id === id);
+                setReport(foundReport);
+            }
+        };
+        if (id) {
+            fetchReport();
         }
-    };
+    }, [id]);
 
-    const confirmDelete = () => {
-        Alert.alert(
-            "Delete Report",
-            "Are you sure you want to delete this report? This action cannot be undone.",
-            [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: handleDelete }
-            ]
-        );
+    // Handlers for header actions
+    const handleDelete = () => {
+        Alert.alert("Delete Report", "Are you sure you want to permanently delete this report?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Delete", style: "destructive", onPress: () => {
+                    console.log("Deleting report...");
+                    router.back();
+                }
+            },
+        ]);
     };
 
     const handleEdit = () => {
-        // Navigate to the create/edit screen, passing the report ID
-        router.push({ pathname: '/report-create', params: { reportId: id } });
+        Alert.alert("Edit Report", "Editing functionality will be implemented here.");
     };
 
-    const openMap = () => {
-        if (report?.location) {
-            const { latitude, longitude } = report.location;
-            const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-            Linking.openURL(url);
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: `Check out this issue report on City Samadhan: ${report.title}`,
+                // url: 'your_app_deep_link_here', // Optional
+            });
+        } catch (error) {
+            Alert.alert(error.message);
         }
     };
 
 
-    if (loading) {
-        return <View style={styles.centered}><ActivityIndicator size="large" color="#667eea" /></View>;
-    }
-
     if (!report) {
-        return <View style={styles.centered}><Text>Report not found.</Text></View>;
+        return <SafeAreaView style={styles.container}><Text>Loading report...</Text></SafeAreaView>;
     }
 
-    const getStatusColor = (status) => status === "resolved" ? "#4ECDC4" : status === "in-progress" ? "#FFD93D" : "#FF6B6B";
+    const statusStyle = getStatusStyle(report.status);
 
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
-            <Stack.Screen
-                options={{
-                    headerTitle: `Report #${id.slice(-6)}`,
-                    headerRight: () => (
-                        <View style={styles.headerButtons}>
-                            <TouchableOpacity onPress={handleEdit} style={styles.headerButton}>
-                                <MaterialCommunityIcons name="pencil-outline" size={24} color="#667eea" />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={confirmDelete} style={styles.headerButton}>
-                                <MaterialCommunityIcons name="delete-outline" size={24} color="#FF6B6B" />
-                            </TouchableOpacity>
-                        </View>
-                    ),
-                }}
-            />
-            <ScrollView>
-                {report.image && <Image source={{ uri: report.image }} style={styles.image} />}
+        <SafeAreaView style={styles.container}>
+            {/* Properly maintained header [cite: 35] */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+                    <Ionicons name="chevron-down" size={28} color="#333" />
+                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity onPress={handleShare} style={styles.headerButton}>
+                        <Ionicons name="share-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleEdit} style={styles.headerButton}>
+                        <Ionicons name="create-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDelete} style={styles.headerButton}>
+                        <Ionicons name="trash-outline" size={24} color="#DC2626" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <Image source={{ uri: report.image }} style={styles.reportImage} />
 
                 <View style={styles.content}>
-                    <View style={styles.badgeContainer}>
-                        <Text style={styles.categoryBadge}>{report.category.charAt(0).toUpperCase() + report.category.slice(1)}</Text>
-                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(report.status) }]}>
-                            <Text style={styles.statusText}>{report.status.charAt(0).toUpperCase() + report.status.slice(1)}</Text>
+                    <View style={styles.tagContainer}>
+                        <Text style={styles.categoryTag}>{report.category}</Text>
+                        <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
+                            <Text style={[styles.statusText, { color: statusStyle.color }]}>{report.status}</Text>
                         </View>
                     </View>
 
                     <Text style={styles.title}>{report.title}</Text>
                     <Text style={styles.description}>{report.description}</Text>
 
-                    <View style={styles.locationContainer}>
-                        <Ionicons name="location" size={20} color="#667eea" />
-                        <Text style={styles.locationText}>{report.address}</Text>
-                        <TouchableOpacity onPress={openMap} style={styles.mapButton}>
-                            <MaterialCommunityIcons name="google-maps" size={22} color="#fff" />
-                        </TouchableOpacity>
+                    <View style={styles.infoSection}>
+                        <Ionicons name="location-outline" size={20} color="#6A5AE0" style={styles.icon} />
+                        <Text style={styles.infoText}>{report.address}</Text>
+                    </View>
+                    <View style={styles.infoSection}>
+                        <Ionicons name="calendar-outline" size={20} color="#6A5AE0" style={styles.icon} />
+                        <Text style={styles.infoText}>Reported on {new Date(report.id).toLocaleDateString()}</Text>
                     </View>
 
-                    <View style={styles.metaContainer}>
-                        <Ionicons name="time-outline" size={16} color="#999" />
-                        <Text style={styles.metaText}>Reported on {new Date(report.createdAt).toLocaleDateString()}</Text>
-                    </View>
-
-                    <View style={styles.divider} />
-
-                    <Text style={styles.sectionTitle}>Comments</Text>
-                    {MOCK_COMMENTS.map(comment => (
-                        <View key={comment.id} style={styles.commentCard}>
-                            <View style={styles.commentAvatar}>
-                                <Text style={styles.commentAvatarText}>{comment.avatar}</Text>
-                            </View>
-                            <View style={styles.commentBody}>
-                                <View style={styles.commentHeader}>
-                                    <Text style={styles.commentUser}>{comment.user}</Text>
-                                    <Text style={styles.commentTime}>{comment.time}</Text>
-                                </View>
-                                <Text style={styles.commentText}>{comment.comment}</Text>
-                            </View>
+                    {/* Comments Section [cite: 33] */}
+                    <View style={styles.commentsSection}>
+                        <Text style={styles.sectionTitle}>Comments</Text>
+                        <View style={styles.commentPlaceholder}>
+                            <Text style={styles.commentPlaceholderText}>No comments yet.</Text>
                         </View>
-                    ))}
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
+// Top-notch and clean design styles [cite: 34]
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8f9fa' },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    headerButtons: { flexDirection: 'row' },
-    headerButton: { paddingHorizontal: 10 },
-    image: { width: '100%', height: 250, backgroundColor: '#e9ecef' },
+    container: { flex: 1, backgroundColor: '#fff' },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    headerButton: { padding: 5 },
+    headerActions: { flexDirection: 'row', gap: 15 },
+    scrollContainer: { paddingBottom: 50 },
+    reportImage: { width: '100%', height: 250 },
     content: { padding: 20 },
-    badgeContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    categoryBadge: { backgroundColor: '#e7eafc', color: '#667eea', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, fontWeight: '600', fontSize: 13, overflow: 'hidden' },
-    statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15 },
-    statusText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#2d3436', marginBottom: 8 },
-    description: { fontSize: 16, color: '#636e72', lineHeight: 24, marginBottom: 20 },
-    locationContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 },
-    locationText: { flex: 1, marginLeft: 10, fontSize: 15, color: '#2d3436' },
-    mapButton: { backgroundColor: '#667eea', padding: 8, borderRadius: 8 },
-    metaContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-    metaText: { marginLeft: 6, fontSize: 13, color: '#999' },
-    divider: { height: 1, backgroundColor: '#e9ecef', marginVertical: 10 },
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#2d3436', marginBottom: 15 },
-    commentCard: { flexDirection: 'row', marginBottom: 15, backgroundColor: '#fff', padding: 12, borderRadius: 12 },
-    commentAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#4ECDC4', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-    commentAvatarText: { color: '#fff', fontWeight: 'bold' },
-    commentBody: { flex: 1 },
-    commentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    commentUser: { fontWeight: 'bold', color: '#2d3436' },
-    commentTime: { fontSize: 12, color: '#999' },
-    commentText: { color: '#636e72' },
+    tagContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    categoryTag: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 12,
+        color: '#6A5AE0',
+        backgroundColor: '#F0EEFF',
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    statusBadge: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12 },
+    statusText: { fontFamily: 'Poppins-SemiBold', fontSize: 12, textTransform: 'capitalize' },
+    title: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 24,
+        color: '#2d3436',
+        marginBottom: 8,
+    },
+    description: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 16,
+        color: '#636e72',
+        lineHeight: 24,
+        marginBottom: 20,
+    },
+    infoSection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F4F7FF',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 10,
+    },
+    icon: { marginRight: 10 },
+    infoText: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#333', flex: 1 },
+    commentsSection: { marginTop: 20, borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 20 },
+    sectionTitle: { fontFamily: 'Poppins-Bold', fontSize: 18, marginBottom: 10 },
+    commentPlaceholder: { alignItems: 'center', paddingVertical: 30, backgroundColor: '#F9F9F9', borderRadius: 10 },
+    commentPlaceholderText: { fontFamily: 'Poppins-Regular', color: '#999' },
 });

@@ -7,52 +7,55 @@ export default function TabsLayout() {
     return (
         <Tabs
             screenOptions={{
-                tabBarActiveTintColor: "#667eea",
-                tabBarInactiveTintColor: "#999",
-                headerShown: false, // Headers are already disabled by the root layout
+                headerShown: false,
+                tabBarActiveTintColor: "#6A5AE0", // New primary color
+                tabBarInactiveTintColor: "#A0A0A0",
+                tabBarShowLabel: false,
                 tabBarStyle: {
-                    backgroundColor: "#fff",
-                    borderTopWidth: 0,
-                    elevation: 10,
-                    shadowOpacity: 0.1,
-                    height: 60,
-                    paddingBottom: 5,
+                    position: 'absolute',
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    elevation: 5,
+                    backgroundColor: '#ffffff',
+                    borderRadius: 25,
+                    height: 70,
+                    shadowColor: '#6A5AE0',
+                    shadowOffset: { width: 0, height: 5 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 10,
                 },
             }}
         >
             <Tabs.Screen
                 name="home"
                 options={{
-                    title: "Home",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home-outline" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? "home" : "home-outline"} size={28} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="my-reports"
                 options={{
-                    title: "My Reports",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="document-text-outline" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? "document-text" : "document-text-outline"} size={28} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="community"
                 options={{
-                    title: "Community",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="people-outline" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? "people" : "people-outline"} size={28} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: "Profile",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="person-outline" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? "person" : "person-outline"} size={28} color={color} />
                     ),
                 }}
             />

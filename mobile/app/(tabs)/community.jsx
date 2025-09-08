@@ -4,8 +4,6 @@ import {
     StyleSheet,
     SafeAreaView,
     FlatList,
-    TouchableOpacity,
-    Image,
     RefreshControl,
     Share,
     Alert,
@@ -154,26 +152,21 @@ export default function CommunityScreen() {
     );
 }
 
+// Styles are almost identical to My Reports for consistency
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8f9fa' },
-    header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-    headerTitle: { fontSize: 28, fontWeight: 'bold' },
-    listContainer: { padding: 15 },
-    card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingTop: 15, paddingBottom: 10 },
-    userInfo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#667eea', justifyContent: 'center', alignItems: 'center' },
-    avatarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-    userName: { fontWeight: 'bold', color: '#2d3436' },
-    timestamp: { color: '#999', fontSize: 12 },
-    shareIcon: { padding: 5 },
-    cardImage: { width: '100%', height: 200 },
-    cardContent: { padding: 15, paddingTop: 5 },
-    categoryText: { fontWeight: 'bold', color: '#667eea', textTransform: 'uppercase', fontSize: 12 },
-    statusBadge: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12 },
-    statusText: { fontWeight: '600', fontSize: 12, textTransform: 'capitalize' },
-    cardTitle: { fontSize: 18, fontWeight: '600', color: '#2d3436', marginTop: 10 },
-    cardActions: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingVertical: 10 },
-    actionButton: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    actionText: { fontWeight: '600', fontSize: 14, color: '#636e72' },
+    container: { flex: 1, backgroundColor: '#F4F7FF' },
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 10,
+    },
+    headerTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 28,
+        color: '#2d3436'
+    },
+    listContainer: {
+        padding: 20,
+        paddingBottom: 120,
+    },
 });

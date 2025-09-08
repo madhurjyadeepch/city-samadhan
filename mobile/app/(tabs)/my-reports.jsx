@@ -4,29 +4,15 @@ import {
     StyleSheet,
     SafeAreaView,
     FlatList,
-    TouchableOpacity,
-    Image,
     RefreshControl,
     Alert,
-    Platform,
+    TouchableOpacity,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
-
-// Helper function for status colors
-const getStatusStyle = (status) => {
-    switch (status) {
-        case "in-progress":
-            return { backgroundColor: "#fffbe6", color: "#f59e0b" };
-        case "done":
-            return { backgroundColor: "#f0fdf4", color: "#22c55e" };
-        case "pending":
-        default:
-            return { backgroundColor: "#fee2e2", color: "#ef4444" };
-    }
-};
+import { Ionicons } from "@expo/vector-icons";
+import ReportCard from '../../components/ReportCard'; // Import the new component
 
 export default function MyReportsScreen() {
     const router = useRouter();
@@ -34,6 +20,7 @@ export default function MyReportsScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     const loadReports = useCallback(async () => {
+        // ... data loading logic is unchanged
         setRefreshing(true);
         try {
             const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
@@ -51,11 +38,7 @@ export default function MyReportsScreen() {
         }
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            loadReports();
-        }, [loadReports])
-    );
+    useFocusEffect(useCallback(() => { loadReports(); }, [loadReports]));
 
     // Remove handleDelete and local storage logic
     const handleDelete = () => {
@@ -124,9 +107,15 @@ export default function MyReportsScreen() {
                 renderItem={renderReportCard}
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={loadReports} />
-                }
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadReports} />}
+                renderItem={({ item }) => (
+                    <ReportCard
+                        report={item}
+                        type="my-report"
+                        onDelete={() => handleDelete(item.id)}
+                        onOpenMap={() => openMap(item.location)}
+                    />
+                )}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="file-tray-outline" size={60} color="#ccc" />
@@ -141,26 +130,39 @@ export default function MyReportsScreen() {
     );
 }
 
+// NEW Styles for the screen
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8f9fa' },
-    header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-    headerTitle: { fontSize: 28, fontWeight: 'bold' },
-    listContainer: { padding: 15 },
-    card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 },
-    cardImage: { width: '100%', height: 180, borderTopLeftRadius: 16, borderTopRightRadius: 16, backgroundColor: '#e9ecef' },
-    cardContent: { padding: 15 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-    categoryText: { fontWeight: 'bold', color: '#667eea' },
-    statusBadge: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12 },
-    statusText: { fontWeight: '600', fontSize: 12, textTransform: 'capitalize' },
-    cardTitle: { fontSize: 18, fontWeight: '600', color: '#2d3436', marginBottom: 5 },
-    cardDescription: { fontSize: 14, color: '#636e72', lineHeight: 20, marginBottom: 15 },
-    locationContainer: { flexDirection: 'row', alignItems: 'center' },
-    addressText: { marginLeft: 5, color: '#636e72', flex: 1 },
-    cardActions: { flexDirection: 'row', justifyContent: 'space-around', borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingVertical: 5 },
-    actionButton: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 6 },
-    actionText: { fontWeight: '600', fontSize: 14 },
-    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 },
-    emptyText: { fontSize: 16, color: '#999', marginTop: 15 },
-    emptyLink: { fontSize: 16, color: '#667eea', fontWeight: '600', marginTop: 10 }
+    container: { flex: 1, backgroundColor: '#F4F7FF' },
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 10,
+    },
+    headerTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 28,
+        color: '#2d3436'
+    },
+    listContainer: {
+        padding: 20,
+        paddingBottom: 120
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 100
+    },
+    emptyText: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 16,
+        color: '#999',
+        marginTop: 15
+    },
+    emptyLink: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 16,
+        color: '#6A5AE0',
+        marginTop: 10
+    }
 });

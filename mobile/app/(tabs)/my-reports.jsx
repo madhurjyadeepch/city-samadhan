@@ -1,5 +1,3 @@
-// app/(tabs)/my-reports.jsx
-
 import {
     View,
     Text,
@@ -13,7 +11,6 @@ import {
     Platform,
 } from "react-native";
 import { useState, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from 'expo-linking';
@@ -39,11 +36,12 @@ export default function MyReportsScreen() {
     const loadReports = useCallback(async () => {
         setRefreshing(true);
         try {
-            const storedReports = await AsyncStorage.getItem("reports");
-            if (storedReports) {
-                setReports(JSON.parse(storedReports));
+            const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
+            const data = await res.json();
+            if (data?.status === "success" && Array.isArray(data?.data?.reports)) {
+                setReports(data.data.reports);
             } else {
-                setReports([]); // Ensure reports is an empty array if nothing is in storage
+                setReports([]);
             }
         } catch (error) {
             Alert.alert("Error", "Could not load your reports.");
@@ -59,51 +57,27 @@ export default function MyReportsScreen() {
         }, [loadReports])
     );
 
-    const handleDelete = (reportId) => {
-        Alert.alert(
-            "Delete Report",
-            "Are you sure you want to permanently delete this report?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    onPress: async () => {
-                        const updatedReports = reports.filter((r) => r.id !== reportId);
-                        setReports(updatedReports);
-                        await AsyncStorage.setItem("reports", JSON.stringify(updatedReports));
-                    },
-                    style: "destructive",
-                },
-            ]
-        );
+    // Remove handleDelete and local storage logic
+    const handleDelete = () => {
+        Alert.alert("Delete not supported", "Deleting reports is not supported from this screen.");
     };
 
     const openMap = (location) => {
-        if (!location) {
-            Alert.alert("Location not available", "This report does not have location data.");
-            return;
-        }
-        const scheme = Platform.OS === 'ios' ? 'maps:0,0?q=' : 'geo:0,0?q=';
-        const latLng = `${location.latitude},${location.longitude}`;
-        const url = Platform.OS === 'ios' ? `${scheme}@${latLng}` : `${scheme}${latLng}(Issue Location)`;
-        Linking.openURL(url);
-    }
+        Alert.alert("Location not available", "This report does not have location data.");
+    };
 
     const renderReportCard = ({ item }) => {
-        // **FIX STARTS HERE: Provide default values to prevent crash**
         const status = item.status || 'pending';
         const category = item.category || 'General';
-        // **FIX ENDS HERE**
-
         const statusStyle = getStatusStyle(status);
 
         return (
             <TouchableOpacity
                 style={styles.card}
-                onPress={() => router.push(`/my-reports/${item.id}`)}
+                onPress={() => router.push(`/my-reports/${item._id}`)}
                 activeOpacity={0.9}
             >
-                <Image source={{ uri: item.image || 'https://via.placeholder.com/400x180.png/e9ecef/6c757d?text=No+Image' }} style={styles.cardImage} />
+                <Image source={{ uri: '../../assets/images/react-logo.png' }} style={styles.cardImage} />
                 <View style={styles.cardContent}>
                     <View style={styles.cardHeader}>
                         <Text style={styles.categoryText}>{category.charAt(0).toUpperCase() + category.slice(1)}</Text>
@@ -119,7 +93,7 @@ export default function MyReportsScreen() {
                     </Text>
                     <View style={styles.locationContainer}>
                         <Ionicons name="location-sharp" size={16} color="#636e72" />
-                        <Text style={styles.addressText}>{item.address || 'Address not available'}</Text>
+                        <Text style={styles.addressText}>Address not available</Text>
                     </View>
                 </View>
                 <View style={styles.cardActions}>
@@ -127,11 +101,11 @@ export default function MyReportsScreen() {
                         <Ionicons name="map-outline" size={20} color="#3498db" />
                         <Text style={[styles.actionText, { color: '#3498db' }]}>Map</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => router.push({ pathname: '/report-create', params: { reportId: item.id } })}>
+                    <TouchableOpacity style={styles.actionButton} onPress={() => router.push({ pathname: '/report-create', params: { reportId: item._id } })}>
                         <Ionicons name="create-outline" size={20} color="#f39c12" />
                         <Text style={[styles.actionText, { color: '#f39c12' }]}>Edit</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(item.id)}>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
                         <Ionicons name="trash-outline" size={20} color="#e74c3c" />
                         <Text style={[styles.actionText, { color: '#e74c3c' }]}>Delete</Text>
                     </TouchableOpacity>
@@ -148,7 +122,7 @@ export default function MyReportsScreen() {
             <FlatList
                 data={reports}
                 renderItem={renderReportCard}
-                keyExtractor={(item) => item.id.toString()} // Added .toString() for safety
+                keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={loadReports} />

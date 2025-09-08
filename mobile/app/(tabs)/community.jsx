@@ -1,5 +1,3 @@
-// app/(tabs)/community.jsx
-
 import {
     View,
     Text,
@@ -11,50 +9,35 @@ import {
     RefreshControl,
     Share,
     Alert,
+    ActivityIndicator,
 } from "react-native";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
-// Mock data for community reports
-const mockCommunityReports = [
-    {
-        id: "comm_1",
-        user: "Jane Doe",
-        avatarInitial: "J",
-        category: "Pothole",
-        status: "in-progress",
-        title: "Dangerous pothole on Main Street",
-        description: "A large pothole near the intersection is causing issues for traffic. Multiple cars have been damaged.",
-        image: "https://plus.unsplash.com/premium_photo-1672883551999-9512f308b3e3?q=80&w=2070", // Placeholder Image URL
-        address: "123 Main St, Anytown",
-        upvotes: 121,
-        downvotes: 5,
-        createdAt: "2 hours ago",
-    },
-    {
-        id: "comm_2",
-        user: "John Smith",
-        avatarInitial: "J",
-        category: "Garbage",
-        status: "pending",
-        title: "Overflowing bins at City Park",
-        description: "The garbage bins at the park entrance haven't been emptied for a week and are attracting pests.",
-        image: "https://images.unsplash.com/photo-1604191316191-b3b841249b65?q=80&w=1974", // Placeholder Image URL
-        address: "City Park, Anytown",
-        upvotes: 98,
-        downvotes: 2,
-        createdAt: "1 day ago",
-    },
-];
 
 // Helper function for status colors
 const getStatusStyle = (status) => {
     switch (status) {
         case "in-progress": return { backgroundColor: "#fffbe6", color: "#f59e0b" };
-        case "done": return { backgroundColor: "#f0fdf4", color: "#22c55e" };
+        case "done":
+        case "resolved": return { backgroundColor: "#f0fdf4", color: "#22c55e" };
         case "pending": default: return { backgroundColor: "#fee2e2", color: "#ef4444" };
     }
+};
+
+// Helper to format date as "x hours ago"
+const timeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return `${diffSec}s ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDay = Math.floor(diffHr / 24);
+    return `${diffDay}d ago`;
 };
 
 // Report Card Component with interactive voting
@@ -73,21 +56,23 @@ const CommunityReportCard = ({ item }) => {
         }
     };
 
+    // Use first letter of category as avatar if no user info
+    const avatarInitial = item.category?.[0]?.toUpperCase() || "U";
+
     return (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => router.push(`/community/${item.id}`)} // Navigate to detail page
+            onPress={() => router.push(`/community/${item._id}`)}
             activeOpacity={0.9}
         >
             <View style={styles.cardHeader}>
                 <View style={styles.userInfo}>
-                    <View style={styles.avatar}><Text style={styles.avatarText}>{item.avatarInitial}</Text></View>
+                    <View style={styles.avatar}><Text style={styles.avatarText}>{avatarInitial}</Text></View>
                     <View>
-                        <Text style={styles.userName}>{item.user}</Text>
-                        <Text style={styles.timestamp}>{item.createdAt}</Text>
+                        <Text style={styles.userName}>{item.author || "Anonymous"}</Text>
+                        <Text style={styles.timestamp}>{timeAgo(item.createdAt)}</Text>
                     </View>
                 </View>
-                {/* Three-dot menu for Share */}
                 <TouchableOpacity onPress={onShare} style={styles.shareIcon}>
                     <Ionicons name="ellipsis-vertical" size={24} color="#636e72" />
                 </TouchableOpacity>
@@ -111,7 +96,7 @@ const CommunityReportCard = ({ item }) => {
                     <Ionicons name="arrow-down-circle-outline" size={24} color="#ef4444" />
                     <Text style={styles.actionText}>{downvotes}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/community/${item.id}`)}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/community/${item._id}`)}>
                     <Ionicons name="chatbubble-outline" size={22} color="#636e72" />
                     <Text style={styles.actionText}>Comment</Text>
                 </TouchableOpacity>
@@ -120,18 +105,31 @@ const CommunityReportCard = ({ item }) => {
     );
 };
 
-
 export default function CommunityScreen() {
-    const [reports, setReports] = useState(mockCommunityReports);
+    const [reports, setReports] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const fetchReports = async () => {
+        try {
+            const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
+            const json = await res.json();
+            setReports(json.data?.reports || []);
+        } catch (err) {
+            Alert.alert("Error", "Failed to fetch reports.");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReports();
+    }, []);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        // In a real app, you would fetch new data from an API here
-        setTimeout(() => {
-            setReports([...mockCommunityReports].reverse()); // Simulate new data
-            setRefreshing(false);
-        }, 1500);
+        fetchReports();
     }, []);
 
     return (
@@ -139,13 +137,19 @@ export default function CommunityScreen() {
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Community Feed</Text>
             </View>
-            <FlatList
-                data={reports}
-                renderItem={({ item }) => <CommunityReportCard item={item} />}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            />
+            {loading ? (
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <ActivityIndicator size="large" color="#667eea" />
+                </View>
+            ) : (
+                <FlatList
+                    data={reports}
+                    renderItem={({ item }) => <CommunityReportCard item={item} />}
+                    keyExtractor={(item) => item._id}
+                    contentContainerStyle={styles.listContainer}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                />
+            )}
         </SafeAreaView>
     );
 }

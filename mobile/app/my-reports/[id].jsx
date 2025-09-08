@@ -95,7 +95,7 @@ export default function MyReportDetailScreen() {
                 }}
             />
             <ScrollView>
-                {report.image && <Image source={{ uri: report.image }} style={styles.image} />}
+                {report.image && <Image source={require('./img.png')} style={styles.image} />}
 
                 <View style={styles.content}>
                     <View style={styles.badgeContainer}>

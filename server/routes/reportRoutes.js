@@ -9,7 +9,7 @@ router.get("/", reportController.getAllReports);
 router.get("/:id", reportController.getReportById);
 
 // Protected routes
-router.use(authController.protect);
+// router.use(authController.protect);
 
 router.post("/create", reportController.createReport);
 router.patch("/changeProgress", reportController.changeProgress);

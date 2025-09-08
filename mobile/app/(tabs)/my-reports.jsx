@@ -7,6 +7,7 @@ import {
     RefreshControl,
     Alert,
     TouchableOpacity,
+    Image,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -18,6 +19,15 @@ export default function MyReportsScreen() {
     const router = useRouter();
     const [reports, setReports] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
+
+    const getStatusStyle = (status) => {
+    switch (status) {
+        case "in-progress": return { backgroundColor: "#fffbe6", color: "#f59e0b" };
+        case "done":
+        case "resolved": return { backgroundColor: "#f0fdf4", color: "#22c55e" };
+        case "pending": default: return { backgroundColor: "#fee2e2", color: "#ef4444" };
+        }
+    };
 
     const loadReports = useCallback(async () => {
         // ... data loading logic is unchanged
@@ -108,14 +118,6 @@ export default function MyReportsScreen() {
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadReports} />}
-                renderItem={({ item }) => (
-                    <ReportCard
-                        report={item}
-                        type="my-report"
-                        onDelete={() => handleDelete(item.id)}
-                        onOpenMap={() => openMap(item.location)}
-                    />
-                )}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="file-tray-outline" size={60} color="#ccc" />
@@ -164,5 +166,88 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#6A5AE0',
         marginTop: 10
-    }
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        marginBottom: 18,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+        padding: 16,
+    },
+    cardImage: {
+        width: '100%',
+        height: 160,
+        borderRadius: 12,
+        marginBottom: 12,
+        backgroundColor: '#eee',
+    },
+    cardContent: {
+        marginBottom: 10,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    categoryText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 14,
+        color: '#6A5AE0',
+    },
+    statusBadge: {
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginLeft: 8,
+    },
+    statusText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 13,
+    },
+    cardTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 18,
+        color: '#2d3436',
+        marginBottom: 4,
+    },
+    cardDescription: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 14,
+        color: '#636e72',
+        marginBottom: 8,
+    },
+    locationContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    addressText: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 13,
+        color: '#636e72',
+        marginLeft: 4,
+    },
+    cardActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        backgroundColor: '#F4F7FF',
+        marginRight: 8,
+    },
+    actionText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 14,
+        marginLeft: 4,
+    },
 });

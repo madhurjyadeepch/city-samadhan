@@ -8,6 +8,8 @@ import {
     Share,
     Alert,
     ActivityIndicator,
+    TouchableOpacity,
+    Image,
 } from "react-native";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -168,5 +170,102 @@ const styles = StyleSheet.create({
     listContainer: {
         padding: 20,
         paddingBottom: 120,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        marginBottom: 18,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+        padding: 16,
+    },
+    cardImage: {
+        width: '100%',
+        height: 160,
+        borderRadius: 12,
+        marginBottom: 12,
+        backgroundColor: '#eee',
+    },
+    cardContent: {
+        marginBottom: 10,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    userInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    avatar: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#e0e7ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    avatarText: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 18,
+        color: '#6A5AE0',
+    },
+    userName: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 15,
+        color: '#2d3436',
+    },
+    timestamp: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 12,
+        color: '#636e72',
+    },
+    shareIcon: {
+        padding: 6,
+    },
+    categoryText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 14,
+        color: '#6A5AE0',
+    },
+    statusBadge: {
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginLeft: 8,
+    },
+    statusText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 13,
+    },
+    cardTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 18,
+        color: '#2d3436',
+        marginBottom: 4,
+    },
+    cardActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        backgroundColor: '#F4F7FF',
+        marginRight: 8,
+    },
+    actionText: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 14,
+        marginLeft: 4,
     },
 });

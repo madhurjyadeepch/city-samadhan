@@ -5,11 +5,14 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+// V V V ADD THIS LINE V V V
+// Replace with your computer's local IP address
+
 // Helper for styling status badges
 const getStatusStyle = (status) => {
     switch (status) {
         case "in-progress": return { backgroundColor: "#FFFBEB", color: "#F59E0B" };
-        case "done": return { backgroundColor: "#F0FDF4", color: "#16A34A" };
+        case "resolved": return { backgroundColor: "#F0FDF4", color: "#16A34A" }; // Changed 'done' to 'resolved' to match schema
         case "pending": default: return { backgroundColor: "#FEF2F2", color: "#DC2626" };
     }
 };
@@ -17,25 +20,33 @@ const getStatusStyle = (status) => {
 const ReportCard = ({ report, type, onDelete, onOpenMap }) => {
     const router = useRouter();
     const statusStyle = getStatusStyle(report.status);
+    
+    // V V V ADD THIS LINE V V V
+    // Construct the full URL for the image
+    const imageUrl = `${process.env.EXPO_PUBLIC_API_URL}/${report.image}`;
+    
 
     // Navigate to the correct detail page based on the card type
     const handlePress = () => {
         if (type === 'my-report') {
-            router.push(`/my-reports/${report.id}`);
+            router.push(`/my-reports/${report._id}`); // Use _id for MongoDB documents
         } else {
-            router.push(`/community/${report.id}`);
+            router.push(`/community/${report._id}`); // Use _id for MongoDB documents
         }
     };
 
     return (
         <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={handlePress}>
+            
+            {/* V V V THIS LINE IS CHANGED V V V */}
             {/* Report Image */}
-            <Image source={{ uri: report.image }} style={styles.cardImage} />
+            <Image source={{ uri: imageUrl }} style={styles.cardImage} />
 
             <View style={styles.cardContent}>
                 {/* Top Row: Category & Status */}
                 <View style={styles.topRow}>
                     <Text style={styles.categoryText}>{report.category}</Text>
+                    {/* <Text style={styles.categoryText}>{report.image}</Text> */}
                     <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
                         <Text style={[styles.statusText, { color: statusStyle.color }]}>{report.status}</Text>
                     </View>
@@ -45,11 +56,12 @@ const ReportCard = ({ report, type, onDelete, onOpenMap }) => {
                 <Text style={styles.titleText}>{report.title}</Text>
 
                 {/* Conditional User Info for Community Cards */}
-                {type === 'community' && (
+                {type === 'community' && report.author && ( // Check if author exists
                     <View style={styles.userInfo}>
-                        <View style={styles.avatar}><Text style={styles.avatarText}>{report.avatarInitial}</Text></View>
-                        <Text style={styles.userName}>{report.user}</Text>
-                        <Text style={styles.timestamp}>• {report.createdAt}</Text>
+                        <View style={styles.avatar}><Text style={styles.avatarText}>{report.author.name.charAt(0)}</Text></View>
+                        <Text style={styles.userName}>{report.author.name}</Text>
+                        {/* You might want to format this date */}
+                        <Text style={styles.timestamp}>• {new Date(report.createdAt).toLocaleDateString()}</Text>
                     </View>
                 )}
 
@@ -69,7 +81,7 @@ const ReportCard = ({ report, type, onDelete, onOpenMap }) => {
                             <Ionicons name="create-outline" size={20} color="#f39c12" />
                             <Text style={styles.actionText}>Edit</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
+                        <TouchableOpacity style={styles.actionButton} onPress={() => onDelete(report._id)}>
                             <Ionicons name="trash-outline" size={20} color="#e74c3c" />
                             <Text style={styles.actionText}>Delete</Text>
                         </TouchableOpacity>
@@ -95,8 +107,7 @@ const ReportCard = ({ report, type, onDelete, onOpenMap }) => {
     );
 };
 
-
-// NEW Styles for the card component
+// Styles remain the same
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#fff',
@@ -200,5 +211,6 @@ const styles = StyleSheet.create({
         color: '#555',
     }
 });
+
 
 export default ReportCard;

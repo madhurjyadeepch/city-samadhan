@@ -3,10 +3,13 @@ const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
 const reportRouter = require("./routes/reportRoutes");
+const path = require("path");
 
 const app = express();
 
 app.use(express.json());
+// This makes files in the 'uploads' folder accessible via URL
+app.use("/uploads", express.static("uploads"));
 
 // Sample route
 app.get("/", (req, res) => {

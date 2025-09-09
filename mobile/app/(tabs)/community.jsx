@@ -25,6 +25,8 @@ const getStatusStyle = (status) => {
     }
 };
 
+
+
 // Helper to format date as "x hours ago"
 const timeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -77,7 +79,7 @@ const CommunityReportCard = ({ item }) => {
                     <Ionicons name="ellipsis-vertical" size={24} color="#636e72" />
                 </TouchableOpacity>
             </View>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
+            <Image source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}/${item.image}` }} style={styles.cardImage} />
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                     <Text style={styles.categoryText}>{item.category}</Text>
@@ -112,7 +114,7 @@ export default function CommunityScreen() {
 
     const fetchReports = async () => {
         try {
-            const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
+            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/reports/`);
             const json = await res.json();
             setReports(json.data?.reports || []);
         } catch (err) {

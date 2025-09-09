@@ -33,7 +33,7 @@ export default function MyReportsScreen() {
         // ... data loading logic is unchanged
         setRefreshing(true);
         try {
-            const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
+            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/reports/`);
             const data = await res.json();
             if (data?.status === "success" && Array.isArray(data?.data?.reports)) {
                 setReports(data.data.reports);

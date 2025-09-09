@@ -11,7 +11,11 @@ router.get("/:id", reportController.getReportById);
 // Protected routes
 // router.use(authController.protect);
 
-router.post("/create", reportController.createReport);
+router.post(
+  "/create",
+  reportController.uploadReportFile,
+  reportController.createReport
+);
 router.patch("/changeProgress", reportController.changeProgress);
 
 module.exports = router;

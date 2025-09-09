@@ -21,7 +21,6 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// NEW: Category data with images. Make sure you have these images in assets/images/
 const CATEGORIES = [
     { label: "Pothole", image: require("../assets/images/pothole.png") },
     { label: "Garbage", image: require("../assets/images/garbage.png") },
@@ -34,18 +33,19 @@ const CATEGORIES = [
 export default function ReportCreateScreen() {
     const router = useRouter();
 
-    // State for all form fields
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [image, setImage] = useState(null);
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState("");
     const [category, setCategory] = useState(null);
+    // <-- REMOVED: State for author ID
 
-    // State for UI and logic
-    const [isAutoLocation, setIsAutoLocation] = useState(true); // Default to Auto
+    const [isAutoLocation, setIsAutoLocation] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFetchingLocation, setIsFetchingLocation] = useState(true);
+
+    // <-- REMOVED: Effect to load author ID from AsyncStorage
 
     const getAutoLocation = useCallback(async () => {
         setIsFetchingLocation(true);
@@ -53,7 +53,7 @@ export default function ReportCreateScreen() {
         if (status !== "granted") {
             Alert.alert("Permission Denied", "Location access is needed to auto-detect your location.");
             setIsFetchingLocation(false);
-            setIsAutoLocation(false); // Switch to manual if permission denied
+            setIsAutoLocation(false);
             return;
         }
         try {
@@ -75,7 +75,7 @@ export default function ReportCreateScreen() {
         if (isAutoLocation) {
             getAutoLocation();
         } else {
-            setAddress(""); // Clear address when switching to manual
+            setAddress("");
         }
     }, [isAutoLocation, getAutoLocation]);
 
@@ -97,21 +97,53 @@ export default function ReportCreateScreen() {
     };
 
     const handleSubmit = async () => {
-        // Validation
+        // <-- MODIFIED: Removed authorId from validation
         if (!image || !category || !title || !description || (!isAutoLocation && !address)) {
             Alert.alert("Incomplete Form", "Please fill out all fields and select a photo and category.");
             return;
         }
         setIsSubmitting(true);
-        // ... (Submission logic remains the same)
-        setIsSubmitting(false);
-        Alert.alert("Success!", "Your report has been submitted.");
-        router.replace("/my-reports");
+
+        const formData = new FormData();
+
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('category', category);
+        formData.append('address', address);
+        // <-- REMOVED: Appending authorId to FormData
+
+        const filename = image.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+        formData.append('image', { uri: image, name: filename, type });
+
+        try {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/reports/create`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'An unknown error occurred.');
+            }
+
+            Alert.alert("Success!", "Your report has been submitted.");
+            router.replace("/(tabs)/my-reports");
+
+        } catch (error) {
+            Alert.alert("Submission Failed", error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* NEW: Redesigned header to fix UX issues */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
                     <Ionicons name="close" size={28} color="#555" />
@@ -120,7 +152,6 @@ export default function ReportCreateScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                {/* Section 1: Add Photo */}
                 <Text style={styles.sectionTitle}>Add Photo</Text>
                 <View style={styles.card}>
                     {image ? (
@@ -144,7 +175,6 @@ export default function ReportCreateScreen() {
                     )}
                 </View>
 
-                {/* Section 2: Title & Description (Reordered as requested) */}
                 <Text style={styles.sectionTitle}>Details</Text>
                 <View style={styles.card}>
                     <TextInput
@@ -164,7 +194,6 @@ export default function ReportCreateScreen() {
                     />
                 </View>
 
-                {/* Section 3: Category with Images */}
                 <Text style={styles.sectionTitle}>Select Category</Text>
                 <View style={styles.categoryGrid}>
                     {CATEGORIES.map((cat) => (
@@ -179,7 +208,6 @@ export default function ReportCreateScreen() {
                     ))}
                 </View>
 
-                {/* Section 4: Location with improved toggle */}
                 <Text style={styles.sectionTitle}>Location</Text>
                 <View style={styles.card}>
                     <View style={styles.locationToggle}>
@@ -208,7 +236,6 @@ export default function ReportCreateScreen() {
                 </View>
             </ScrollView>
 
-            {/* Redesigned Submit Button */}
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
                     {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitButtonText}>Submit Report</Text>}
@@ -218,7 +245,6 @@ export default function ReportCreateScreen() {
     );
 }
 
-// NEW Styles to match the theme
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#F4F7FF" },
     header: {

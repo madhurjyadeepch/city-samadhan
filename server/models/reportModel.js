@@ -19,21 +19,22 @@ const reportSchema = mongoose.Schema({
     type: String,
     required: [true, "A report must have an address"],
   },
-  // NEW: Added an image URL field (optional)
+
   image: {
     type: String,
+    required: [true, "A report must have an image"],
   },
   author: {
     type: mongoose.Schema.ObjectId,
-    ref: "User", // This links to your User model
-    required: true,
+    ref: "User",
+    // required: true,
   },
   status: {
     type: String,
     enum: ["pending", "in-progress", "resolved"],
     default: "pending",
   },
-  // NEW: Added upvotes and downvotes with default values
+
   upvotes: {
     type: Number,
     default: 0,

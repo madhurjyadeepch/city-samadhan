@@ -5,24 +5,26 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
     StatusBar,
     ScrollView,
-    Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+// 1. IMPORT SafeAreaView from the recommended library
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
     const router = useRouter();
+    const { user } = useAuth();
 
     return (
+        // 2. WRAP the entire screen in SafeAreaView
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Custom Header */}
+            {/* Custom Header is now safely inside */}
             <View style={styles.header}>
-                {/* You can replace this Text with an Image component for your logo */}
                 <Text style={styles.headerTitle}>City Samadhan</Text>
                 <TouchableOpacity>
                     <Ionicons name="notifications-outline" size={28} color="#333" />
@@ -30,9 +32,8 @@ export default function HomeScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                {/* This is the middle scrollable section */}
                 <View style={styles.welcomeCard}>
-                    <Text style={styles.welcomeTitle}>Welcome, John!</Text>
+                    <Text style={styles.welcomeTitle}>Welcome, {user?.name || 'User'}!</Text>
                     <Text style={styles.welcomeText}>
                         This is the central space for community updates. For now, it's a placeholder.
                         You can scroll here to see future content.
@@ -58,14 +59,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F4F7FF", // Light background color
+        backgroundColor: "#F4F7FF",
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 20, // Lowered the heading
+        // 3. REMOVE paddingTop. SafeAreaView handles this now.
         paddingBottom: 10,
     },
     headerTitle: {
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         padding: 20,
-        paddingBottom: 120, // Padding to ensure content is not hidden by the FAB and nav bar
+        paddingBottom: 120,
     },
     welcomeCard: {
         backgroundColor: '#fff',
@@ -104,9 +105,9 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: 'absolute',
-        bottom: 110, // Positioned above the new tab bar
+        bottom: 110,
         left: '50%',
-        marginLeft: -125, // Centering the button (width / 2)
+        marginLeft: -125,
         width: 250,
         height: 60,
         backgroundColor: '#6A5AE0',

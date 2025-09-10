@@ -1,8 +1,9 @@
+// app/(tabs)/community.jsx
+
 import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     FlatList,
     RefreshControl,
     Share,
@@ -11,21 +12,21 @@ import {
     TouchableOpacity,
     Image,
 } from "react-native";
+// <-- MODIFIED: Import SafeAreaView from the recommended library
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import api from "../../utils/api"; // <-- Using the authenticated API client is a good practice here too
 
 // Helper function for status colors
 const getStatusStyle = (status) => {
     switch (status) {
         case "in-progress": return { backgroundColor: "#fffbe6", color: "#f59e0b" };
-        case "done":
         case "resolved": return { backgroundColor: "#f0fdf4", color: "#22c55e" };
         case "pending": default: return { backgroundColor: "#fee2e2", color: "#ef4444" };
     }
 };
-
-
 
 // Helper to format date as "x hours ago"
 const timeAgo = (dateString) => {
@@ -58,8 +59,7 @@ const CommunityReportCard = ({ item }) => {
         }
     };
 
-    // Use first letter of category as avatar if no user info
-    const avatarInitial = item.category?.[0]?.toUpperCase() || "U";
+    const avatarInitial = item.author?.name?.[0]?.toUpperCase() || "A";
 
     return (
         <TouchableOpacity
@@ -71,7 +71,7 @@ const CommunityReportCard = ({ item }) => {
                 <View style={styles.userInfo}>
                     <View style={styles.avatar}><Text style={styles.avatarText}>{avatarInitial}</Text></View>
                     <View>
-                        <Text style={styles.userName}>{item.author || "Anonymous"}</Text>
+                        <Text style={styles.userName}>{item.author?.name || "Anonymous"}</Text>
                         <Text style={styles.timestamp}>{timeAgo(item.createdAt)}</Text>
                     </View>
                 </View>
@@ -114,9 +114,8 @@ export default function CommunityScreen() {
 
     const fetchReports = async () => {
         try {
-            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/reports/`);
-            const json = await res.json();
-            setReports(json.data?.reports || []);
+            const response = await api.get('/api/v1/reports/');
+            setReports(response.data.data?.reports || []);
         } catch (err) {
             Alert.alert("Error", "Failed to fetch reports.");
         } finally {
@@ -156,12 +155,11 @@ export default function CommunityScreen() {
     );
 }
 
-// Styles are almost identical to My Reports for consistency
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F4F7FF' },
     header: {
         paddingHorizontal: 20,
-        paddingTop: 20,
+        // <-- MODIFIED: Removed paddingTop. SafeAreaView handles this.
         paddingBottom: 10,
     },
     headerTitle: {

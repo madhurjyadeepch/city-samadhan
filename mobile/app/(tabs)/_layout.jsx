@@ -1,14 +1,33 @@
 // app/(tabs)/_layout.jsx
 
-import { Tabs } from "expo-router";
+import { Tabs, Redirect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
+import { ActivityIndicator, View } from 'react-native';
 
 export default function TabsLayout() {
+    const { user, isLoading } = useAuth();
+
+    // While the app checks for a saved user session, show a loading screen.
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#6A5AE0" />
+            </View>
+        );
+    }
+
+    // If loading is finished and there is no user, redirect to the login screen.
+    if (!user) {
+        return <Redirect href="/login" />;
+    }
+
+    // If a user is logged in, render your styled tabs.
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: "#6A5AE0", // New primary color
+                tabBarActiveTintColor: "#6A5AE0",
                 tabBarInactiveTintColor: "#A0A0A0",
                 tabBarShowLabel: false,
                 tabBarStyle: {

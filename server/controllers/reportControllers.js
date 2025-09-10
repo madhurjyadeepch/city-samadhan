@@ -45,7 +45,7 @@ exports.changeProgress = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllReports = catchAsync(async (req, res, next) => {
-  const reports = await Report.find();
+  const reports = await Report.find().populate("author");
   res.status(200).json({
     status: "success",
     results: reports.length,
@@ -77,6 +77,7 @@ exports.createReport = catchAsync(async (req, res, next) => {
   // 2. Combine the text data from req.body with the file path from req.file
   const reportData = {
     ...req.body, // Copies title, description, author, etc.
+    author: req.user._id,
     image: req.file.path, // Adds the image path from Multer
   };
 
@@ -115,6 +116,17 @@ exports.updateReport = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       report,
+    },
+  });
+});
+
+exports.myReports = catchAsync(async (req, res, next) => {
+  const reports = await Report.find({ author: req.user._id });
+  res.status(200).json({
+    status: "success",
+    results: reports.length,
+    data: {
+      reports,
     },
   });
 });

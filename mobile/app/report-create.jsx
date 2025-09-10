@@ -20,6 +20,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../utils/api";
 
 const CATEGORIES = [
     { label: "Pothole", image: require("../assets/images/pothole.png") },
@@ -110,7 +111,6 @@ export default function ReportCreateScreen() {
         formData.append('description', description);
         formData.append('category', category);
         formData.append('address', address);
-        // <-- REMOVED: Appending authorId to FormData
 
         const filename = image.split('/').pop();
         const match = /\.(\w+)$/.exec(filename);
@@ -118,25 +118,20 @@ export default function ReportCreateScreen() {
         formData.append('image', { uri: image, name: filename, type });
 
         try {
-            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/reports/create`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
+            const response = await api.post('/api/v1/reports/create', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
                 },
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || 'An unknown error occurred.');
-            }
+            const result = response.data;
 
             Alert.alert("Success!", "Your report has been submitted.");
             router.replace("/(tabs)/my-reports");
 
         } catch (error) {
-            Alert.alert("Submission Failed", error.message);
+            const message = error.response?.data?.message || error.message;
+            Alert.alert("Submission Failed", message);
         } finally {
             setIsSubmitting(false);
         }

@@ -1,11 +1,22 @@
-// app/(tabs)/profile.jsx
+// mobile/app/(tabs)/profile.jsx
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    Image,
+    TouchableOpacity,
+    Alert,
+    StatusBar,
+    Platform
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import CustomHeader from '../../components/CustomHeader'; // Using the new header
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // A placeholder for the profile picture
-const profileImage = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888';
+const profileImage =
+    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888';
 
 const ProfileOption = ({ icon, title, onPress }) => (
     <TouchableOpacity style={styles.optionItem} onPress={onPress} activeOpacity={0.7}>
@@ -18,6 +29,8 @@ const ProfileOption = ({ icon, title, onPress }) => (
 );
 
 export default function ProfileScreen() {
+    const insets = useSafeAreaInsets();
+
     const handleLogout = () => {
         Alert.alert("Logout", "Are you sure you want to log out?", [
             { text: "Cancel", style: "cancel" },
@@ -27,9 +40,23 @@ export default function ProfileScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Solves the refresh icon being too high */}
-            <CustomHeader />
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <StatusBar barStyle="dark-content" backgroundColor="#F4F7FF" />
+
+            {/* Custom Header */}
+            <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+                <Text style={styles.headerTitle}>Profile</Text>
+                <TouchableOpacity>
+                    <Ionicons name="notifications-outline" size={28} color="#333" />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContainer,
+                    { paddingBottom: Platform.OS === 'ios' ? insets.bottom + 100 : 100 }
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.profileHeader}>
                     <Image source={{ uri: profileImage }} style={styles.avatar} />
                     <Text style={styles.userName}>Jessica Miller</Text>
@@ -67,15 +94,26 @@ export default function ProfileScreen() {
     );
 }
 
-// Styles designed to match the app's new vibe
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F4F7FF',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        backgroundColor: '#F4F7FF',
+    },
+    headerTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 28,
+        color: '#2d3436',
+    },
     scrollContainer: {
         padding: 20,
-        paddingBottom: 120,
     },
     profileHeader: {
         alignItems: 'center',
@@ -106,6 +144,11 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 20,
         marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     statBox: {
         alignItems: 'center',
@@ -120,11 +163,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#636e72',
         marginTop: 4,
+        textAlign: 'center',
     },
     optionsSection: {
         backgroundColor: '#fff',
         borderRadius: 20,
         padding: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     optionItem: {
         flexDirection: 'row',

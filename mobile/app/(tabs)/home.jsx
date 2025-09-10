@@ -13,12 +13,14 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from "../../context/AuthContext"; // <-- 1. IMPORT useAuth
 
 const { width, height } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { user } = useAuth(); // <-- 2. GET THE USER FROM THE CONTEXT
 
     return (
         <View style={styles.container}>

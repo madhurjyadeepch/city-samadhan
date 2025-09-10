@@ -1,11 +1,13 @@
 // app/(tabs)/profile.jsx
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import CustomHeader from '../../components/CustomHeader'; // Using the new header
 
-// A placeholder for the profile picture
-const profileImage = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+// <-- MODIFIED: Import SafeAreaView from the recommended library
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import CustomHeader from '../../components/CustomHeader';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
 const ProfileOption = ({ icon, title, onPress }) => (
     <TouchableOpacity style={styles.optionItem} onPress={onPress} activeOpacity={0.7}>
@@ -18,22 +20,62 @@ const ProfileOption = ({ icon, title, onPress }) => (
 );
 
 export default function ProfileScreen() {
+    const { user, logout } = useAuth();
+    const [profileData, setProfileData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await api.get('/api/v1/users/me');
+                if (response.data.status === 'success') {
+                    setProfileData(response.data.data.data);
+                } else {
+                    throw new Error('Failed to fetch profile data.');
+                }
+            } catch (error) {
+                Alert.alert("Error", "Could not load your profile. Please try again.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, []);
+
     const handleLogout = () => {
-        Alert.alert("Logout", "Are you sure you want to log out?", [
-            { text: "Cancel", style: "cancel" },
-            { text: "Logout", style: "destructive", onPress: () => console.log("User logged out") },
-        ]);
+        Alert.alert(
+            "Logout", 
+            "Are you sure you want to log out?", 
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Logout", style: "destructive", onPress: () => logout() },
+            ]
+        );
     };
 
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F4F7FF' }}>
+                <ActivityIndicator size="large" color="#6A5AE0" />
+            </View>
+        );
+    }
+    
+    const displayName = profileData?.name || user?.name;
+    const displayEmail = profileData?.email || user?.email;
+
     return (
-        <View style={styles.container}>
-            {/* Solves the refresh icon being too high */}
+        // <-- MODIFIED: Replaced View with SafeAreaView
+        <SafeAreaView style={styles.container}>
             <CustomHeader />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.profileHeader}>
-                    <Image source={{ uri: profileImage }} style={styles.avatar} />
-                    <Text style={styles.userName}>Jessica Miller</Text>
-                    <Text style={styles.userEmail}>jessica.miller@example.com</Text>
+                    <View style={styles.avatarPlaceholder}>
+                        <Text style={styles.avatarText}>{displayName?.charAt(0)?.toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.userName}>{displayName}</Text>
+                    <Text style={styles.userEmail}>{displayEmail}</Text>
                 </View>
 
                 <View style={styles.statsContainer}>
@@ -63,31 +105,50 @@ export default function ProfileScreen() {
                     <Text style={styles.logoutButtonText}>Logout</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 
-// Styles designed to match the app's new vibe
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F4F7FF',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        backgroundColor: '#F4F7FF',
+    },
+    headerTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 28,
+        color: '#2d3436',
+    },
     scrollContainer: {
         padding: 20,
-        paddingBottom: 120,
     },
     profileHeader: {
         alignItems: 'center',
         marginBottom: 30,
     },
-    avatar: {
+    avatarPlaceholder: {
         width: 120,
         height: 120,
         borderRadius: 60,
         borderWidth: 4,
         borderColor: '#fff',
         marginBottom: 15,
+        backgroundColor: '#6A5AE0',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarText: {
+        color: '#fff',
+        fontSize: 48,
+        fontFamily: 'Poppins-Bold',
     },
     userName: {
         fontFamily: 'Poppins-Bold',
@@ -106,6 +167,11 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 20,
         marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     statBox: {
         alignItems: 'center',
@@ -120,11 +186,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#636e72',
         marginTop: 4,
+        textAlign: 'center',
     },
     optionsSection: {
         backgroundColor: '#fff',
         borderRadius: 20,
         padding: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     optionItem: {
         flexDirection: 'row',

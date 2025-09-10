@@ -2,21 +2,26 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     FlatList,
     RefreshControl,
     Alert,
     TouchableOpacity,
     Image,
+    Platform,
+    StatusBar,
 } from "react-native";
+// <-- MODIFIED: Import SafeAreaView from the recommended library
+import { SafeAreaView } from "react-native-safe-area-context"; 
 import { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import * as Linking from 'expo-linking';
 import { Ionicons } from "@expo/vector-icons";
-import ReportCard from '../../components/ReportCard'; // Import the new component
+import ReportCard from '../../components/ReportCard';
+import api from "../../utils/api";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MyReportsScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [reports, setReports] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -30,18 +35,19 @@ export default function MyReportsScreen() {
     };
 
     const loadReports = useCallback(async () => {
-        // ... data loading logic is unchanged
         setRefreshing(true);
         try {
-            const res = await fetch("http://192.168.43.147:3000/api/v1/reports/");
-            const data = await res.json();
+            const response = await api.get('/api/v1/reports/my-reports');
+            const data = response.data;
+
             if (data?.status === "success" && Array.isArray(data?.data?.reports)) {
                 setReports(data.data.reports);
             } else {
                 setReports([]);
             }
         } catch (error) {
-            Alert.alert("Error", "Could not load your reports.");
+            const message = error.response?.data?.message || "Could not load your reports.";
+            Alert.alert("Error", message);
             console.error(error);
         } finally {
             setRefreshing(false);
@@ -50,9 +56,20 @@ export default function MyReportsScreen() {
 
     useFocusEffect(useCallback(() => { loadReports(); }, [loadReports]));
 
-    // Remove handleDelete and local storage logic
-    const handleDelete = () => {
-        Alert.alert("Delete not supported", "Deleting reports is not supported from this screen.");
+    const handleDelete = (reportId) => {
+        Alert.alert("Confirm Delete", "Are you sure you want to delete this report?", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete", style: "destructive", onPress: async () => {
+                try {
+                    await api.delete(`/api/v1/reports/${reportId}`);
+                    Alert.alert("Success", "Report deleted successfully.");
+                    loadReports(); // Refresh the list
+                } catch (error) {
+                    const message = error.response?.data?.message || "Could not delete the report.";
+                    Alert.alert("Error", message);
+                }
+            }},
+        ]);
     };
 
     const openMap = (location) => {
@@ -108,14 +125,24 @@ export default function MyReportsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+        <View style={styles.container}>
+            <StatusBar barStyle="dark-content" backgroundColor="#F4F7FF" />
+
+            <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                 <Text style={styles.headerTitle}>My Reports</Text>
             </View>
+
             <FlatList
                 data={reports}
-                renderItem={renderReportCard}
-                keyExtractor={(item) => item._id.toString()}
+                renderItem={({ item }) => (
+                    <ReportCard 
+                        report={item}
+                        onEdit={() => router.push({ pathname: '/report-create', params: { reportId: item._id } })}
+                        onDelete={() => handleDelete(item._id)}
+                        onOpenMap={() => openMap(item.location)}
+                    />
+                )}
+                keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.listContainer}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadReports} />}
                 ListEmptyComponent={
@@ -127,18 +154,22 @@ export default function MyReportsScreen() {
                         </TouchableOpacity>
                     </View>
                 }
+                showsVerticalScrollIndicator={false}
             />
-        </SafeAreaView>
+        </View>
     );
 }
 
-// NEW Styles for the screen
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F4F7FF' },
+    container: {
+        flex: 1,
+        backgroundColor: '#F4F7FF'
+    },
     header: {
         paddingHorizontal: 20,
         paddingTop: 20,
         paddingBottom: 10,
+        backgroundColor: '#F4F7FF',
     },
     headerTitle: {
         fontFamily: 'Poppins-Bold',
@@ -147,7 +178,6 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         padding: 20,
-        paddingBottom: 120
     },
     emptyContainer: {
         flex: 1,
@@ -159,7 +189,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Regular',
         fontSize: 16,
         color: '#999',
-        marginTop: 15
+        marginTop: 15,
+        textAlign: 'center',
     },
     emptyLink: {
         fontFamily: 'Poppins-SemiBold',
@@ -219,6 +250,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#636e72',
         marginBottom: 8,
+        lineHeight: 20,
     },
     locationContainer: {
         flexDirection: 'row',
@@ -230,6 +262,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#636e72',
         marginLeft: 4,
+        flex: 1,
     },
     cardActions: {
         flexDirection: 'row',

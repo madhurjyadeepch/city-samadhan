@@ -1,9 +1,8 @@
-// app/(tabs)/_layout.jsx
-
 import { Tabs, Redirect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { ActivityIndicator, View } from 'react-native';
+import { Platform } from "react-native";
 
 export default function TabsLayout() {
     const { user, isLoading } = useAuth();
@@ -28,21 +27,28 @@ export default function TabsLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarActiveTintColor: "#6A5AE0",
+                tabBarActiveTintColor: "#6A5AE0",
                 tabBarInactiveTintColor: "#A0A0A0",
                 tabBarShowLabel: false,
                 tabBarStyle: {
                     position: 'absolute',
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
+                    bottom: 0, // Changed from 20 to 0
+                    left: 0,   // Changed from 20 to 0
+                    right: 0,  // Changed from 20 to 0
                     elevation: 5,
                     backgroundColor: '#ffffff',
-                    borderRadius: 25,
-                    height: 70,
+                    borderTopLeftRadius: 25,
+                    borderTopRightRadius: 25,
+                    borderRadius: 0, // Remove general border radius
+                    height: Platform.OS === 'ios' ? 85 : 70, // Different heights for iOS/Android
+                    paddingBottom: Platform.OS === 'ios' ? 25 : 5, // Account for home indicator
+                    paddingTop: 10,
                     shadowColor: '#6A5AE0',
-                    shadowOffset: { width: 0, height: 5 },
+                    shadowOffset: { width: 0, height: -2 }, // Shadow going upward
                     shadowOpacity: 0.15,
                     shadowRadius: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: '#EAEBEE',
                 },
             }}
         >

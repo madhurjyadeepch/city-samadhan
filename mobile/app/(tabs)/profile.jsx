@@ -114,9 +114,21 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F4F7FF',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        backgroundColor: '#F4F7FF',
+    },
+    headerTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 28,
+        color: '#2d3436',
+    },
     scrollContainer: {
         padding: 20,
-        paddingBottom: 120,
     },
     profileHeader: {
         alignItems: 'center',
@@ -155,6 +167,11 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 20,
         marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     statBox: {
         alignItems: 'center',
@@ -169,11 +186,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#636e72',
         marginTop: 4,
+        textAlign: 'center',
     },
     optionsSection: {
         backgroundColor: '#fff',
         borderRadius: 20,
         padding: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     optionItem: {
         flexDirection: 'row',

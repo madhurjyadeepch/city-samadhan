@@ -1,5 +1,3 @@
-// app/report-create.jsx
-
 import {
     View,
     Text,
@@ -13,6 +11,7 @@ import {
     ActivityIndicator,
     Switch,
     Platform,
+    KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,26 +32,24 @@ const CATEGORIES = [
 
 export default function ReportCreateScreen() {
     const router = useRouter();
-
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [image, setImage] = useState(null);
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState("");
     const [category, setCategory] = useState(null);
-    // <-- REMOVED: State for author ID
-
     const [isAutoLocation, setIsAutoLocation] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFetchingLocation, setIsFetchingLocation] = useState(true);
-
-    // <-- REMOVED: Effect to load author ID from AsyncStorage
 
     const getAutoLocation = useCallback(async () => {
         setIsFetchingLocation(true);
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-            Alert.alert("Permission Denied", "Location access is needed to auto-detect your location.");
+            Alert.alert(
+                "Permission Denied",
+                "Location access is needed to auto-detect your location."
+            );
             setIsFetchingLocation(false);
             setIsAutoLocation(false);
             return;
@@ -84,13 +81,25 @@ export default function ReportCreateScreen() {
         let result;
         if (useCamera) {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission Denied', 'Camera access is needed to take a photo.');
+            if (status !== "granted") {
+                Alert.alert(
+                    "Permission Denied",
+                    "Camera access is needed to take a photo."
+                );
                 return;
             }
-            result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.8 });
+            result = await ImagePicker.launchCameraAsync({
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8,
+            });
         } else {
-            result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.8 });
+            result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8,
+            });
         }
         if (!result.canceled) {
             setImage(result.assets[0].uri);
@@ -98,13 +107,14 @@ export default function ReportCreateScreen() {
     };
 
     const handleSubmit = async () => {
-        // <-- MODIFIED: Removed authorId from validation
         if (!image || !category || !title || !description || (!isAutoLocation && !address)) {
-            Alert.alert("Incomplete Form", "Please fill out all fields and select a photo and category.");
+            Alert.alert(
+                "Incomplete Form",
+                "Please fill out all fields and select a photo and category."
+            );
             return;
         }
         setIsSubmitting(true);
-
         const formData = new FormData();
 
         formData.append('title', title);
@@ -115,8 +125,7 @@ export default function ReportCreateScreen() {
         const filename = image.split('/').pop();
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : `image`;
-        formData.append('image', { uri: image, name: filename, type });
-
+        formData.append("image", { uri: image, name: filename, type });
         try {
             const response = await api.post('/api/v1/reports/create', formData, {
             headers: {
@@ -128,7 +137,6 @@ export default function ReportCreateScreen() {
 
             Alert.alert("Success!", "Your report has been submitted.");
             router.replace("/(tabs)/my-reports");
-
         } catch (error) {
             const message = error.response?.data?.message || error.message;
             Alert.alert("Submission Failed", message);
@@ -139,244 +147,333 @@ export default function ReportCreateScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-                    <Ionicons name="close" size={28} color="#555" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Report a New Issue</Text>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.sectionTitle}>Add Photo</Text>
-                <View style={styles.card}>
-                    {image ? (
-                        <View>
-                            <Image source={{ uri: image }} style={styles.imagePreview} />
-                            <TouchableOpacity style={styles.removeImageButton} onPress={() => setImage(null)}>
-                                <Ionicons name="close-circle" size={32} color="#fff" />
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        <View style={styles.photoButtonsContainer}>
-                            <TouchableOpacity style={styles.photoButton} onPress={() => pickImage(true)}>
-                                <Ionicons name="camera-outline" size={28} color="#6A5AE0" />
-                                <Text style={styles.photoButtonText}>Camera</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.photoButton} onPress={() => pickImage(false)}>
-                                <Ionicons name="image-outline" size={28} color="#6A5AE0" />
-                                <Text style={styles.photoButtonText}>Gallery</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                {/* === MODIFIED HEADER SECTION === */}
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        style={[styles.closeButton, {paddingTop: 30}]}
+                    >
+                        <Ionicons name="close" size={28} color="#555" />
+                    </TouchableOpacity>
+                    <Text style={[styles.headerTitle, {paddingTop: 30}]}>Report a New Issue</Text>
+                    {/* This empty view balances the close button and centers the title */}
+                    <View style={styles.headerRightPlaceholder} />
                 </View>
-
-                <Text style={styles.sectionTitle}>Details</Text>
-                <View style={styles.card}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Title (e.g., Large Pothole on MG Road)"
-                        value={title}
-                        onChangeText={setTitle}
-                        placeholderTextColor="#999"
-                    />
-                    <TextInput
-                        style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
-                        placeholder="Description (add more details about the issue)"
-                        multiline
-                        value={description}
-                        onChangeText={setDescription}
-                        placeholderTextColor="#999"
-                    />
-                </View>
-
-                <Text style={styles.sectionTitle}>Select Category</Text>
-                <View style={styles.categoryGrid}>
-                    {CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                            key={cat.label}
-                            style={[styles.categoryItem, category === cat.label && styles.categoryItemSelected]}
-                            onPress={() => setCategory(cat.label)}
-                        >
-                            <Image source={cat.image} style={styles.categoryImage} />
-                            <Text style={[styles.categoryText, category === cat.label && styles.categoryTextSelected]}>{cat.label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                <Text style={styles.sectionTitle}>Location</Text>
-                <View style={styles.card}>
-                    <View style={styles.locationToggle}>
-                        <Text style={styles.locationToggleText}>Auto-detect Location</Text>
-                        <Switch
-                            value={isAutoLocation}
-                            onValueChange={setIsAutoLocation}
-                            trackColor={{ false: '#ccc', true: '#C9C2F8' }}
-                            thumbColor={isAutoLocation ? '#6A5AE0' : '#f4f3f4'}
-                        />
+                {/* === END OF MODIFIED HEADER SECTION === */}
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <Text style={styles.sectionTitle}>Add Photo</Text>
+                    <View style={styles.card}>
+                        {image ? (
+                            <View>
+                                <Image
+                                    source={{ uri: image }}
+                                    style={styles.imagePreview}
+                                />
+                                <TouchableOpacity
+                                    style={styles.removeImageButton}
+                                    onPress={() => setImage(null)}
+                                >
+                                    <Ionicons
+                                        name="close-circle"
+                                        size={32}
+                                        color="#fff"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View style={styles.photoButtonsContainer}>
+                                <TouchableOpacity
+                                    style={styles.photoButton}
+                                    onPress={() => pickImage(true)}
+                                >
+                                    <Ionicons
+                                        name="camera-outline"
+                                        size={28}
+                                        color="#6A5AE0"
+                                    />
+                                    <Text style={styles.photoButtonText}>
+                                        Camera
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.photoButton}
+                                    onPress={() => pickImage(false)}
+                                >
+                                    <Ionicons
+                                        name="image-outline"
+                                        size={28}
+                                        color="#6A5AE0"
+                                    />
+                                    <Text style={styles.photoButtonText}>
+                                        Gallery
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
-                    {!isAutoLocation ? (
+                    <Text style={styles.sectionTitle}>Details</Text>
+                    <View style={styles.card}>
                         <TextInput
-                            style={[styles.input, { marginTop: 15 }]}
-                            placeholder="Enter address manually"
-                            value={address}
-                            onChangeText={setAddress}
+                            style={styles.input}
+                            placeholder="Title"
+                            value={title}
+                            onChangeText={setTitle}
                             placeholderTextColor="#999"
                         />
-                    ) : (
-                        <View style={styles.autoLocationDisplay}>
-                            <Ionicons name="location-outline" size={20} color="#6A5AE0" />
-                            {isFetchingLocation ? <ActivityIndicator style={{ marginLeft: 10 }} /> : <Text style={styles.addressText}>{address}</Text>}
+                        <TextInput
+                            style={[
+                                styles.input,
+                                { height: 120, textAlignVertical: "top" },
+                            ]}
+                            placeholder="Description (add more details about the issue)"
+                            multiline
+                            value={description}
+                            onChangeText={setDescription}
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+                    <Text style={styles.sectionTitle}>Select Category</Text>
+                    <View style={styles.categoryGrid}>
+                        {CATEGORIES.map((cat) => (
+                            <TouchableOpacity
+                                key={cat.label}
+                                style={[
+                                    styles.categoryItem,
+                                    category === cat.label &&
+                                    styles.categoryItemSelected,
+                                ]}
+                                onPress={() => setCategory(cat.label)}
+                            >
+                                <Image
+                                    source={cat.image}
+                                    style={styles.categoryImage}
+                                />
+                                <Text
+                                    style={[
+                                        styles.categoryText,
+                                        category === cat.label &&
+                                        styles.categoryTextSelected,
+                                    ]}
+                                >
+                                    {cat.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <Text style={styles.sectionTitle}>Location</Text>
+                    <View style={styles.card}>
+                        <View style={styles.locationToggle}>
+                            <Text style={styles.locationToggleText}>
+                                Auto-detect Location
+                            </Text>
+                            <Switch
+                                value={isAutoLocation}
+                                onValueChange={setIsAutoLocation}
+                                trackColor={{
+                                    false: "#ccc",
+                                    true: "#C9C2F8",
+                                }}
+                                thumbColor={
+                                    isAutoLocation ? "#6A5AE0" : "#f4f3f4"
+                                }
+                            />
                         </View>
-                    )}
+                        {!isAutoLocation ? (
+                            <TextInput
+                                style={[styles.input, { marginTop: 15 }]}
+                                placeholder="Enter address manually"
+                                value={address}
+                                onChangeText={setAddress}
+                                placeholderTextColor="#999"
+                            />
+                        ) : (
+                            <View style={styles.autoLocationDisplay}>
+                                <Ionicons
+                                    name="location-outline"
+                                    size={20}
+                                    color="#6A5AE0"
+                                />
+                                {isFetchingLocation ? (
+                                    <ActivityIndicator
+                                        style={{ marginLeft: 10 }}
+                                    />
+                                ) : (
+                                    <Text style={styles.addressText}>
+                                        {address}
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={styles.submitButton}
+                        onPress={handleSubmit}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.submitButtonText}>
+                                Submit Report
+                            </Text>
+                        )}
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
-
-            <View style={styles.footer}>
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitButtonText}>Submit Report</Text>}
-                </TouchableOpacity>
-            </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#F4F7FF" },
+    // === MODIFIED HEADER STYLES ===
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         paddingHorizontal: 15,
         paddingVertical: 10,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderBottomWidth: 1,
-        borderBottomColor: '#EAEBEE'
+        borderBottomColor: "#EAEBEE",
     },
     closeButton: { padding: 5 },
     headerTitle: {
         flex: 1,
-        textAlign: 'center',
-        fontFamily: 'Poppins-SemiBold',
+        textAlign: "center",
+        fontFamily: "Poppins-SemiBold",
         fontSize: 18,
-        color: '#333'
+        color: "#333",
+        marginHorizontal: 10, // Add some margin
     },
+    // New style for the placeholder
+    headerRightPlaceholder: {
+        width: 28 + 10, // Icon size (28) + padding (5*2=10)
+    },
+    // === END OF MODIFIED HEADER STYLES ===
     scrollContainer: { padding: 20, paddingBottom: 100 },
     sectionTitle: {
-        fontFamily: 'Poppins-SemiBold',
+        fontFamily: "Poppins-SemiBold",
         fontSize: 18,
-        color: '#333',
+        color: "#333",
         marginBottom: 10,
-        marginTop: 15
+        marginTop: 15,
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderRadius: 15,
         padding: 15,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 5,
-        elevation: 3
+        elevation: 3,
     },
-    imagePreview: { width: '100%', height: 200, borderRadius: 10 },
+    imagePreview: { width: "100%", height: 200, borderRadius: 10 },
     removeImageButton: {
-        position: 'absolute',
+        position: "absolute",
         top: 10,
         right: 10,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        borderRadius: 16
+        backgroundColor: "rgba(0,0,0,0.5)",
+        borderRadius: 16,
     },
-    photoButtonsContainer: { flexDirection: 'row', justifyContent: 'space-around' },
+    photoButtonsContainer: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
     photoButton: {
-        alignItems: 'center',
-        backgroundColor: '#F4F7FF',
+        alignItems: "center",
+        backgroundColor: "#F4F7FF",
         padding: 20,
         borderRadius: 10,
-        width: '45%'
+        width: "45%",
     },
     photoButtonText: {
-        fontFamily: 'Poppins-Regular',
-        color: '#6A5AE0',
-        marginTop: 5
+        fontFamily: "Poppins-Regular",
+        color: "#6A5AE0",
+        marginTop: 5,
     },
     input: {
-        backgroundColor: '#F4F7FF',
+        backgroundColor: "#F4F7FF",
         borderRadius: 10,
         padding: 15,
-        fontFamily: 'Poppins-Regular',
+        fontFamily: "Poppins-Regular",
         fontSize: 16,
-        color: '#333',
+        color: "#333",
         borderWidth: 1,
-        borderColor: '#EAEBEE',
+        borderColor: "#EAEBEE",
         marginBottom: 10,
     },
     categoryGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between'
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
     },
     categoryItem: {
-        width: '30%',
-        alignItems: 'center',
-        backgroundColor: '#fff',
+        width: "30%",
+        alignItems: "center",
+        backgroundColor: "#fff",
         padding: 15,
         borderRadius: 15,
         marginBottom: 15,
         borderWidth: 2,
-        borderColor: 'transparent',
+        borderColor: "transparent",
     },
     categoryItemSelected: {
-        borderColor: '#6A5AE0',
-        backgroundColor: '#F0EEFF'
+        borderColor: "#6A5AE0",
+        backgroundColor: "#F0EEFF",
     },
     categoryImage: { width: 40, height: 40, marginBottom: 5 },
     categoryText: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: "Poppins-Regular",
         fontSize: 12,
-        textAlign: 'center',
+        textAlign: "center",
     },
-    categoryTextSelected: { fontFamily: 'Poppins-SemiBold' },
+    categoryTextSelected: { fontFamily: "Poppins-SemiBold" },
     locationToggle: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
     },
     locationToggleText: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: "Poppins-Regular",
         fontSize: 16,
-        color: '#333'
+        color: "#333",
     },
     autoLocationDisplay: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginTop: 15,
-        backgroundColor: '#F4F7FF',
+        backgroundColor: "#F4F7FF",
         padding: 15,
-        borderRadius: 10
+        borderRadius: 10,
     },
     addressText: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: "Poppins-Regular",
         marginLeft: 10,
         flex: 1,
-        color: '#555'
+        color: "#555",
     },
     footer: {
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderTopWidth: 1,
-        borderColor: '#EAEBEE'
+        borderColor: "#EAEBEE",
     },
     submitButton: {
-        backgroundColor: '#6A5AE0',
+        backgroundColor: "#6A5AE0",
         padding: 15,
         borderRadius: 15,
-        alignItems: 'center'
+        alignItems: "center",
     },
     submitButtonText: {
-        color: '#fff',
-        fontFamily: 'Poppins-Bold',
-        fontSize: 18
+        color: "#fff",
+        fontFamily: "Poppins-Bold",
+        fontSize: 18,
     },
 });

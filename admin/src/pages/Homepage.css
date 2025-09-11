@@ -1,6 +1,61 @@
+body {
+    background-color: white;
+}
+
+#community-reports-title {
+  font-family: 'Inter', sans-serif;
+  margin-left: 20px;
+  color: #033c70;
+}
+
 .reports-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh; 
+  box-sizing: border-box;
+}
+
+.small-report-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 50px;
+  font-family: 'Inter' sans-serif;
+  font-size: 25px;
+}
+
+.pagination-container button {
+  color: black;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  background-color: white;
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
+}
+
+.pagination-container button:hover {
+  background-color: rgb(229, 229, 229);
+  border-color: rgb(229, 229, 229);
+}
+
+.pagination-container button.active {
+  background-color: #033c70;
+  border-color: #033c70;
+  color: white;
+}
+
+.pagination-container button.active:hover {
+  background-color: #054b88;
+  border-color: #054b88;
 }

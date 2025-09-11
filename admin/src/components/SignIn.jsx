@@ -1,7 +1,8 @@
 import React from 'react'
 import './SignIn.css'
+import { useNavigate } from 'react-router-dom'
 
-const SignIn = () => {
+const SignIn = ({setIsSignIn}) => {
     const [departments, setDepartments] = React.useState([
         { id: 'mohua', name: 'Ministry of Housing & Urban Affairs (MoHUA)', scope: 'Urban planning, municipal services, municipal finance and urban infrastructure' },
         { id: 'municipal', name: 'Municipal Corporation / Urban Local Bodies', scope: 'Local civic services: waste collection, streetlights, local roads, sanitation, building approvals' },
@@ -17,27 +18,33 @@ const SignIn = () => {
         { id: 'dot', name: 'Department of Telecommunications (DoT)', scope: 'Telecom policy, public digital connectivity and telecom grievance redressal' },
         { id: 'other', name: 'Other'}
     ])
+
+    const navigate = useNavigate();
+
+    function handleSignIn() {
+      navigate('/')
+    }
+
   return (
-    <div className='signup-container'>
+    <div className='signin-container'>
         <h1 id='signin-title'>Sign In</h1>
-        <form id='user-signin-form'>
+        <form id='user-signin-form' onSubmit={handleSignIn}>
+          <div className='input-container'>
             <input type='text' placeholder='Username' required></input>
-            <br/>
             <input type='password' placeholder='Password' required></input>
+            <select id='department-select' required>
+              <option value='Select Department' disabled selected hidden>Select Department</option>
+              {departments.map(department => {
+                return(
+                  <>
+                    <option value={department.name}>{department.name}</option>
+                  </>
+                )
+              })}
+            </select>
+            <button id='signin-button' onClick={handleSignIn}>Sign In</button>
+          </div>
         </form>
-        <select id='department-select' required>
-          <option value='Select Department' disabled selected hidden>Select Department</option>
-          {departments.map(department => {
-            return(
-              <>
-                <option value={department.name}>{department.name}</option>
-              </>
-            )
-          })}
-        </select>
-
-        <span id='not-registered'>Not registered? <a href='#'>Sign up</a></span>
-
     </div>
   )
 }

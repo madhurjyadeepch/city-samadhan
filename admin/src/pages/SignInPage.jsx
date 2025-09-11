@@ -1,26 +1,26 @@
 import React from 'react'
 import SignIn from '../components/SignIn'
-import signupbackdrop from '../assets/signup_backdrop.png'
+import signinbackdrop3 from '../assets/signin_backdrop3.png'
 
-const SignInPage = () => {
+const SignInPage = ({setIsSignedIn}) => {
     React.useEffect(() => {
-    // Set body background
-    document.body.style.backgroundImage = `url(${signupbackdrop})`
-    document.body.style.backgroundSize = '350px'
+    document.body.style.backgroundImage = `url(${signinbackdrop3})`
+    document.body.style.backgroundSize = '1920px'
     document.body.style.backgroundPosition = 'center'
-    document.body.style.backgroundRepeat = 'repeat'
+    document.body.style.backgroundRepeat = 'no-repeat'
+    document.body.style.backgroundColor = 'black'
 
-    // Cleanup on unmount
     return () => {
       document.body.style.backgroundImage = ''
       document.body.style.backgroundSize = ''
       document.body.style.backgroundPosition = ''
       document.body.style.backgroundRepeat = ''
+      document.body.style.backgroundColor = ''
     }
   }, [])
   return (
     <div>
-      <SignIn />
+      <SignIn setIsSignedIn={setIsSignedIn}/>
     </div>
   )
 }

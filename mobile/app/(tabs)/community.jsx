@@ -1,3 +1,5 @@
+// app/(tabs)/community.jsx
+
 import {
     View,
     Text,
@@ -9,16 +11,12 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Image,
-    Platform,
-    StatusBar,
 } from "react-native";
-// <-- MODIFIED: Import SafeAreaView from the recommended library
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import api from "../../utils/api"; // <-- Using the authenticated API client is a good practice here too
+import api from "../../utils/api";
 
 // Helper function for status colors
 const getStatusStyle = (status) => {
@@ -35,7 +33,6 @@ const timeAgo = (dateString) => {
     const now = new Date();
     const diffMs = now - date;
     const diffSec = Math.floor(diffMs / 1000);
-
     if (diffSec < 60) return `${diffSec}s ago`;
     const diffMin = Math.floor(diffSec / 60);
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -45,7 +42,7 @@ const timeAgo = (dateString) => {
     return `${diffDay}d ago`;
 };
 
-// Report Card Component with interactive voting
+// Report Card Component
 const CommunityReportCard = ({ item }) => {
     const router = useRouter();
     const [upvotes, setUpvotes] = useState(item.upvotes);
@@ -71,9 +68,7 @@ const CommunityReportCard = ({ item }) => {
         >
             <View style={styles.cardHeader}>
                 <View style={styles.userInfo}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{avatarInitial}</Text>
-                    </View>
+                    <View style={styles.avatar}><Text style={styles.avatarText}>{avatarInitial}</Text></View>
                     <View>
                         <Text style={styles.userName}>{item.author?.name || "Anonymous"}</Text>
                         <Text style={styles.timestamp}>{timeAgo(item.createdAt)}</Text>
@@ -83,51 +78,26 @@ const CommunityReportCard = ({ item }) => {
                     <Ionicons name="ellipsis-vertical" size={24} color="#636e72" />
                 </TouchableOpacity>
             </View>
-
-            <Image
-                source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}/${item.image}` }}
-                style={styles.cardImage}
-            />
-
+            <Image source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}/${item.image}` }} style={styles.cardImage} />
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                     <Text style={styles.categoryText}>{item.category}</Text>
-                    <View style={[
-                        styles.statusBadge,
-                        { backgroundColor: getStatusStyle(item.status).backgroundColor }
-                    ]}>
-                        <Text style={[
-                            styles.statusText,
-                            { color: getStatusStyle(item.status).color }
-                        ]}>
-                            {item.status}
-                        </Text>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusStyle(item.status).backgroundColor }]}>
+                        <Text style={[styles.statusText, { color: getStatusStyle(item.status).color }]}>{item.status}</Text>
                     </View>
                 </View>
                 <Text style={styles.cardTitle}>{item.title}</Text>
             </View>
-
             <View style={styles.cardActions}>
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => setUpvotes(upvotes + 1)}
-                >
+                <TouchableOpacity style={styles.actionButton} onPress={() => setUpvotes(upvotes + 1)}>
                     <Ionicons name="arrow-up-circle-outline" size={24} color="#22c55e" />
                     <Text style={styles.actionText}>{upvotes}</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => setDownvotes(downvotes + 1)}
-                >
+                <TouchableOpacity style={styles.actionButton} onPress={() => setDownvotes(downvotes + 1)}>
                     <Ionicons name="arrow-down-circle-outline" size={24} color="#ef4444" />
                     <Text style={styles.actionText}>{downvotes}</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push(`/community/${item._id}`)}
-                >
+                <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/community/${item._id}`)}>
                     <Ionicons name="chatbubble-outline" size={22} color="#636e72" />
                     <Text style={styles.actionText}>Comment</Text>
                 </TouchableOpacity>
@@ -137,7 +107,6 @@ const CommunityReportCard = ({ item }) => {
 };
 
 export default function CommunityScreen() {
-    const insets = useSafeAreaInsets();
     const [reports, setReports] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -164,45 +133,32 @@ export default function CommunityScreen() {
     }, []);
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F4F7FF" />
-
-            <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
                 <Text style={styles.headerTitle}>Community Feed</Text>
             </View>
-
             {loading ? (
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#6A5AE0" />
+                    <ActivityIndicator size="large" color="#667eea" />
                 </View>
             ) : (
                 <FlatList
                     data={reports}
                     renderItem={({ item }) => <CommunityReportCard item={item} />}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={[
-                        styles.listContainer,
-                        { paddingBottom: Platform.OS === 'ios' ? insets.bottom + 100 : 100 }
-                    ]}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                    }
-                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.listContainer}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 />
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F4F7FF'
-    },
+    container: { flex: 1, backgroundColor: '#F4F7FF' },
     header: {
         paddingHorizontal: 20,
         paddingBottom: 10,
-        backgroundColor: '#F4F7FF',
     },
     headerTitle: {
         fontFamily: 'Poppins-Bold',
@@ -210,7 +166,9 @@ const styles = StyleSheet.create({
         color: '#2d3436'
     },
     listContainer: {
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 150,
     },
     card: {
         backgroundColor: '#fff',
@@ -260,6 +218,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-SemiBold',
         fontSize: 15,
         color: '#2d3436',
+        // V V V THIS IS THE CHANGED LINE V V V
+        lineHeight: 22, // Give the username text enough vertical space
     },
     timestamp: {
         fontFamily: 'Poppins-Regular',
@@ -273,16 +233,19 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-SemiBold',
         fontSize: 14,
         color: '#6A5AE0',
+        lineHeight: 20,
     },
     statusBadge: {
         borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
         marginLeft: 8,
     },
     statusText: {
         fontFamily: 'Poppins-SemiBold',
         fontSize: 13,
+        lineHeight: 16,
+        textTransform: 'capitalize'
     },
     cardTitle: {
         fontFamily: 'Poppins-Bold',
@@ -298,7 +261,7 @@ const styles = StyleSheet.create({
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 4,
+        paddingVertical: 6,
         paddingHorizontal: 8,
         borderRadius: 6,
         backgroundColor: '#F4F7FF',
@@ -308,5 +271,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-SemiBold',
         fontSize: 14,
         marginLeft: 4,
+        lineHeight: 18,
     },
 });

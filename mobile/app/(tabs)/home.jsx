@@ -5,81 +5,55 @@ import {
     StyleSheet,
     TouchableOpacity,
     StatusBar,
-    ScrollView,
     Image,
-    Platform,
-    Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from "../../context/AuthContext"; // <-- 1. IMPORT useAuth
-
-const { width, height } = Dimensions.get('window');
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from "../../context/AuthContext";
 
 export default function HomeScreen() {
     const router = useRouter();
-    const insets = useSafeAreaInsets();
-    const { user } = useAuth(); // <-- 2. GET THE USER FROM THE CONTEXT
+    const { user } = useAuth();
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F4F7FF" />
 
-            {/* Custom Header */}
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                <Text style={styles.headerTitle}>City Samadhan</Text>
+            {/* Header */}
+            <View style={styles.header}>
+                <View>
+                    <Text style={styles.welcomeText}>Welcome back,</Text>
+                    <Text style={styles.userName}>{user?.name || 'User'}!</Text>
+                </View>
                 <TouchableOpacity>
                     <Ionicons name="notifications-outline" size={28} color="#333" />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                contentContainerStyle={[
-                    styles.scrollContainer,
-                    { paddingBottom: Platform.OS === 'ios' ? 150 : 130 }
-                ]}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Welcome Card */}
-                <View style={styles.welcomeCard}>
-                    <Text style={styles.welcomeTitle}>Welcome, {user?.name || 'User'}!</Text>
-                    <Text style={styles.welcomeText}>
-                        This is the central space for community updates. For now, it's a placeholder.
-                        You can scroll here to see future content.
+            {/* Main Content Card */}
+            <View style={styles.content}>
+                <View style={styles.card}>
+                    <Image 
+                        source={require('../../assets/images/streetlight.png')} // Add a relevant illustration to your assets
+                        style={styles.illustration}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.cardTitle}>See an issue?</Text>
+                    <Text style={styles.cardSubtitle}>
+                        Help improve your community by reporting problems like potholes or broken streetlights.
                     </Text>
+                    <TouchableOpacity
+                        style={styles.ctaButton}
+                        activeOpacity={0.8}
+                        onPress={() => router.push("/report-create")}
+                    >
+                        <Ionicons name="add-circle" size={24} color="#fff" />
+                        <Text style={styles.ctaButtonText}>Report a New Issue</Text>
+                    </TouchableOpacity>
                 </View>
-
-                <Text style={styles.placeholderText}>Scrollable Content Area...</Text>
-
-                {/* Add some dummy content to test scrolling */}
-                <View style={styles.dummyContent}>
-                    {Array.from({ length: 10 }, (_, index) => (
-                        <View key={index} style={styles.dummyCard}>
-                            <Text style={styles.dummyCardText}>Content Card {index + 1}</Text>
-                            <Text style={styles.dummyCardSubtext}>
-                                This is some placeholder content to test the scrolling behavior.
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </ScrollView>
-
-            {/* Floating 'Report New Issue' Button */}
-            <TouchableOpacity
-                style={[
-                    styles.fab,
-                    {
-                        bottom: Platform.OS === 'ios' ? insets.bottom + 95 : 85,
-                    }
-                ]}
-                activeOpacity={0.8}
-                onPress={() => router.push("/report-create")}
-            >
-                <Ionicons name="add" size={32} color="#fff" />
-                <Text style={styles.fabText}>Report New Issue</Text>
-            </TouchableOpacity>
-        </View>
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -92,94 +66,71 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-        backgroundColor: '#F4F7FF',
-    },
-    headerTitle: {
-        fontFamily: 'Poppins-Bold',
-        fontSize: 24,
-        color: '#2d3436',
-    },
-    scrollContainer: {
-        padding: 20,
-    },
-    welcomeCard: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 20,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    welcomeTitle: {
-        fontFamily: 'Poppins-SemiBold',
-        fontSize: 20,
-        color: '#333'
+        paddingHorizontal: 25,
+        paddingTop: 20,
+        paddingBottom: 20,
     },
     welcomeText: {
         fontFamily: 'Poppins-Regular',
         fontSize: 16,
-        color: '#666',
-        marginTop: 10,
-        lineHeight: 24,
+        color: '#636e72',
     },
-    placeholderText: {
-        textAlign: 'center',
-        fontFamily: 'Poppins-Regular',
-        fontSize: 18,
-        color: '#aaa',
-        marginTop: 20,
-        marginBottom: 20,
+    userName: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 26,
+        color: '#2d3436',
     },
-    dummyContent: {
-        gap: 15,
-    },
-    dummyCard: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    dummyCardText: {
-        fontFamily: 'Poppins-SemiBold',
-        fontSize: 16,
-        color: '#333',
-        marginBottom: 5,
-    },
-    dummyCardSubtext: {
-        fontFamily: 'Poppins-Regular',
-        fontSize: 14,
-        color: '#666',
-    },
-    fab: {
-        position: 'absolute',
-        left: '50%',
-        marginLeft: -125, // Half of width to center
-        width: 250,
-        height: 60,
-        backgroundColor: '#6A5AE0',
-        borderRadius: 30,
-        flexDirection: 'row',
+    content: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#6A5AE0',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 10,
+        padding: 25,
     },
-    fabText: {
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        padding: 30,
+        alignItems: 'center',
+        width: '100%',
+        shadowColor: '#6A5AE0',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 8,
+    },
+    illustration: {
+        width: 200,
+        height: 150,
+        marginBottom: 20,
+    },
+    cardTitle: {
+        fontFamily: 'Poppins-Bold',
+        fontSize: 22,
+        color: '#333',
+        marginBottom: 10,
+    },
+    cardSubtitle: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 15,
+        color: '#666',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 30,
+    },
+    ctaButton: {
+        backgroundColor: '#6A5AE0',
+        borderRadius: 30,
+        paddingVertical: 18,
+        paddingHorizontal: 30,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+    },
+    ctaButtonText: {
         color: '#fff',
         fontFamily: 'Poppins-SemiBold',
         fontSize: 18,
-        marginLeft: 8,
+        marginLeft: 10,
     },
 });

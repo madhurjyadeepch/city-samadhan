@@ -1,340 +1,219 @@
-import React, { useState, useEffect } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    Image,
-    TouchableOpacity,
-    SafeAreaView,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+// app/my-reports/[id].jsx
 
-// Mock data to simulate fetching a specific report
-const mockCommunityReports = [
-    {
-        id: "comm_1",
-        user: "Jane Doe",
-        avatarInitial: "J",
-        category: "Pothole",
-        status: "in-progress",
-        title: "Dangerous pothole on Main Street",
-        description: "A large pothole near the intersection...",
-        image: "https://plus.unsplash.com/premium_photo-1672883551999-9512f308b3e3?q=80&w=2070",
-        address: "123 Main St, Anytown",
-        upvotes: 152,
-        downvotes: 5,
-        createdAt: "3 hours ago",
-    },
-    {
-        id: "comm_2",
-        user: "Robert Chen",
-        avatarInitial: "R",
-        category: "Garbage",
-        status: "pending",
-        title: "Overflowing garbage cans at City Park",
-        description: "The garbage bins at the park entrance...",
-        image: "https://images.unsplash.com/photo-1604191316191-b3b841249b65?q=80&w=1974",
-        address: "City Park, Anytown",
-        upvotes: 98,
-        downvotes: 2,
-        createdAt: "1 day ago",
-    },
-];
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, Alert, TouchableOpacity, StatusBar, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import api from '../../utils/api';
 
-const Comment = ({ comment }) => {
-    const [liked, setLiked] = useState(false);
-    return (
-        <View style={styles.commentContainer}>
-            <View style={styles.commentAvatar}>
-                <Text style={styles.commentAvatarText}>
-                    {comment.user[0]}
-                </Text>
-            </View>
-            <View style={styles.commentBody}>
-                <Text style={styles.commentUser}>{comment.user}</Text>
-                <Text style={styles.commentText}>{comment.text}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setLiked(!liked)}>
-                <Ionicons
-                    name={liked ? "heart" : "heart-outline"}
-                    size={20}
-                    color={liked ? "#E91E63" : "#999"}
-                />
-            </TouchableOpacity>
-        </View>
-    );
+// --- (Helper functions like getStatusStyle remain the same) ---
+const getStatusStyle = (status) => {
+    switch (status) {
+        case "in-progress": return { backgroundColor: "#FFFBEB", color: "#F59E0B" };
+        case "resolved": return { backgroundColor: "#F0FDF4", color: "#16A34A" };
+        case "pending": default: return { backgroundColor: "#FEF2F2", color: "#DC2626" };
+    }
 };
 
-export default function CommunityReportDetailScreen() {
-    const router = useRouter();
+// --- DUMMY DATA FOR PROTOTYPE ---
+const dummyComments = [
+    { id: '1', user: 'Jane Doe', text: 'I saw this too! It\'s a real problem.' },
+    { id: '2', user: 'John Smith', text: 'Thanks for reporting this. Hope it gets fixed soon.' },
+];
+
+export default function ReportDetailScreen() {
     const { id } = useLocalSearchParams();
+    const router = useRouter();
     const [report, setReport] = useState(null);
-    const insets = useSafeAreaInsets();
+    const [isLoading, setIsLoading] = useState(true);
+    
+    // --- STATE FOR COMMENTS ---
+    const [comments, setComments] = useState(dummyComments);
+    const [newComment, setNewComment] = useState('');
 
     useEffect(() => {
-        const foundReport = mockCommunityReports.find((r) => r.id === id);
-        setReport(foundReport);
+        const fetchReportDetails = async () => {
+            if (!id) return;
+            try {
+                const response = await api.get(`/api/v1/reports/${id}`);
+                if (response.data.status === 'success') {
+                    setReport(response.data.data.report);
+                } else {
+                    throw new Error('Report not found.');
+                }
+            } catch (error) {
+                Alert.alert("Error", "Could not load the report details.");
+                router.back();
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchReportDetails();
     }, [id]);
 
-    if (!report) {
+    const handleAddComment = () => {
+        if (newComment.trim() === '') return;
+        const commentToAdd = {
+            id: Math.random().toString(),
+            user: 'You', // Placeholder for current user
+            text: newComment,
+        };
+        setComments([...comments, commentToAdd]);
+        setNewComment('');
+    };
+
+    if (isLoading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <Text>Loading report...</Text>
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#6A5AE0" />
             </SafeAreaView>
         );
     }
 
+    if (!report) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <Text>Report not found.</Text>
+            </SafeAreaView>
+        );
+    }
+    
+    const imageUrl = `${process.env.EXPO_PUBLIC_API_URL}/${report.image}`;
+    const statusStyle = getStatusStyle(report.status);
+    const avatarInitial = report.author?.name?.[0]?.toUpperCase() || "A";
+
     return (
         <SafeAreaView style={styles.container}>
-            <View style={[styles.header, { paddingTop: insets.top }]}>
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={styles.headerButton}
-                >
-                    <Ionicons name="chevron-down" size={28} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Community Report</Text>
-                <TouchableOpacity style={styles.headerButton}>
-                    <Ionicons name="share-outline" size={24} color="#333" />
+            <StatusBar barStyle="dark-content" />
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back-circle" size={32} color="#555" />
                 </TouchableOpacity>
             </View>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ flex: 1 }}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-            >
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.scrollContainer,
-                        { paddingBottom: insets.bottom + 80 },
-                    ]}
-                >
-                    <Image
-                        source={{ uri: report.image }}
-                        style={styles.reportImage}
-                    />
-                    <View style={styles.content}>
-                        <Text style={styles.categoryTag}>
-                            {report.category}
-                        </Text>
-                        <Text style={styles.title}>{report.title}</Text>
-                        <View style={styles.userInfo}>
-                            <View style={styles.avatar}>
-                                <Text style={styles.avatarText}>
-                                    {report.avatarInitial}
-                                </Text>
-                            </View>
-                            <Text style={styles.userName}>{report.user}</Text>
-                            <Text style={styles.timestamp}>
-                                • {report.createdAt}
-                            </Text>
-                        </View>
-                        <Text style={styles.description}>
-                            {report.description}
-                        </Text>
-                        <View style={styles.voteContainer}>
-                            <TouchableOpacity style={styles.voteButton}>
-                                <Ionicons
-                                    name="arrow-up-outline"
-                                    size={22}
-                                    color="#16A34A"
-                                />
-                                <Text style={styles.voteText}>
-                                    {report.upvotes}
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.voteButton}>
-                                <Ionicons
-                                    name="arrow-down-outline"
-                                    size={22}
-                                    color="#DC2626"
-                                />
-                                <Text style={styles.voteText}>
-                                    {report.downvotes}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.commentsSection}>
-                            <Text style={styles.sectionTitle}>
-                                Comments (3)
-                            </Text>
-                            <Comment
-                                comment={{
-                                    user: "Alice",
-                                    text: "I saw this yesterday, it's very dangerous!",
-                                }}
-                            />
-                            <Comment
-                                comment={{
-                                    user: "Bob",
-                                    text: "Hope the authorities fix this soon.",
-                                }}
-                            />
-                            <Comment
-                                comment={{
-                                    user: "Charlie",
-                                    text: "Thanks for reporting this.",
-                                }}
-                            />
+
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <Image source={{ uri: imageUrl }} style={styles.reportImage} />
+
+                <View style={styles.card}>
+                    <View style={styles.tagRow}>
+                        <View style={styles.categoryBadge}><Text style={styles.categoryText}>{report.category}</Text></View>
+                        <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}><Text style={[styles.statusText, { color: statusStyle.color }]}>{report.status}</Text></View>
+                    </View>
+                    <Text style={styles.titleText}>{report.title}</Text>
+                    <Text style={styles.descriptionText}>{report.description}</Text>
+                </View>
+
+                <View style={styles.card}>
+                    <Text style={styles.cardSectionTitle}>Details</Text>
+                    <View style={styles.detailRow}><Ionicons name="location-outline" size={22} color="#636e72" /><Text style={styles.detailText}>{report.address}</Text></View>
+                    <View style={styles.detailRow}><Ionicons name="calendar-outline" size={22} color="#636e72" /><Text style={styles.detailText}>{new Date(report.createdAt).toLocaleString()}</Text></View>
+                </View>
+                
+                {report.author && (
+                    <View style={styles.card}>
+                        <Text style={styles.cardSectionTitle}>Reported By</Text>
+                         <View style={styles.authorInfo}>
+                            <View style={styles.avatar}><Text style={styles.avatarText}>{avatarInitial}</Text></View>
+                            <Text style={styles.authorName}>{report.author.name}</Text>
                         </View>
                     </View>
-                </ScrollView>
-                <View
-                    style={[
-                        styles.commentInputContainer,
-                        { paddingBottom: insets.bottom },
-                    ]}
-                >
-                    <TextInput
-                        placeholder="Add a comment..."
-                        style={styles.commentInput}
-                        placeholderTextColor="#999"
-                    />
-                    <TouchableOpacity style={styles.sendButton}>
-                        <Ionicons name="send" size={22} color="#fff" />
-                    </TouchableOpacity>
+                )}
+
+                {/* V V V NEW COMMENTS SECTION V V V */}
+                <View style={styles.card}>
+                    <Text style={styles.cardSectionTitle}>Comments ({comments.length})</Text>
+                    {comments.map((comment, index) => (
+                        <View key={index} style={styles.commentContainer}>
+                            <Text style={styles.commentUser}>{comment.user}</Text>
+                            <Text style={styles.commentText}>{comment.text}</Text>
+                        </View>
+                    ))}
+                    <View style={styles.commentInputContainer}>
+                        <TextInput
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChangeText={setNewComment}
+                            placeholderTextColor="#999"
+                        />
+                        <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
+                            <Ionicons name="send" size={22} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </KeyboardAvoidingView>
+                {/* ^ ^ ^ NEW COMMENTS SECTION ^ ^ ^ */}
+
+            </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#fff" },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#F0F0F0",
-    },
-    headerButton: { padding: 5, width: 40, alignItems: "center" },
-    headerTitle: { fontFamily: "Poppins-SemiBold", fontSize: 16 },
-    scrollContainer: { paddingBottom: 100 },
-    reportImage: { width: "100%", height: 250 },
-    content: { padding: 20 },
-    categoryTag: {
-        fontFamily: "Poppins-SemiBold",
-        fontSize: 12,
-        color: "#6A5AE0",
-        backgroundColor: "#F0EEFF",
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-        alignSelf: "flex-start",
-        marginBottom: 12,
-        overflow: "hidden",
-    },
-    title: {
-        fontFamily: "Poppins-Bold",
-        fontSize: 24,
-        color: "#2d3436",
-        marginBottom: 8,
-    },
-    userInfo: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 15,
-    },
-    avatar: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: "#6A5AE0",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-    avatarText: { color: "#fff", fontFamily: "Poppins-Bold", fontSize: 12 },
-    userName: { fontFamily: "Poppins-SemiBold", color: "#333" },
-    timestamp: {
-        fontFamily: "Poppins-Regular",
-        color: "#999",
-        marginLeft: 5,
-    },
-    description: {
-        fontFamily: "Poppins-Regular",
-        fontSize: 16,
-        color: "#636e72",
-        lineHeight: 24,
-        marginBottom: 20,
-    },
-    voteContainer: { flexDirection: "row", gap: 20, marginBottom: 20 },
-    voteButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        backgroundColor: "#F4F7FF",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-    },
-    voteText: { fontFamily: "Poppins-SemiBold" },
-    commentsSection: {
-        marginTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: "#F0F0F0",
-        paddingTop: 20,
-    },
-    sectionTitle: {
-        fontFamily: "Poppins-Bold",
-        fontSize: 18,
-        marginBottom: 15,
-    },
+    container: { flex: 1, backgroundColor: '#F4F7FF' },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F4F7FF' },
+    scrollContainer: { paddingHorizontal: 20, paddingBottom: 50 },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 10 },
+    backButton: { padding: 5 },
+    reportImage: { width: '100%', height: 250, borderRadius: 20, backgroundColor: '#EAEBEE', marginBottom: 20 },
+    card: { backgroundColor: '#fff', borderRadius: 20, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+    tagRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+    categoryBadge: { backgroundColor: '#F0EEFF', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },
+    categoryText: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#6A5AE0', textTransform: 'capitalize' },
+    statusBadge: { marginLeft: 'auto', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 },
+    statusText: { fontFamily: 'Poppins-SemiBold', fontSize: 14, textTransform: 'capitalize' },
+    titleText: { fontFamily: 'Poppins-Bold', fontSize: 24, color: '#2d3436', marginBottom: 10, lineHeight: 32 },
+    descriptionText: { fontFamily: 'Poppins-Regular', fontSize: 16, color: '#636e72', lineHeight: 26 },
+    cardSectionTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', paddingBottom: 10 },
+    detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    detailText: { fontFamily: 'Poppins-Regular', fontSize: 15, color: '#2d3436', marginLeft: 15, flex: 1 },
+    authorInfo: { flexDirection: 'row', alignItems: 'center' },
+    avatar: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#e0e7ff', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+    avatarText: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#6A5AE0' },
+    authorName: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#2d3436' },
+    // --- NEW STYLES FOR COMMENTS ---
     commentContainer: {
-        flexDirection: "row",
-        alignItems: "flex-start",
-        marginBottom: 15,
+        backgroundColor: '#F4F7FF',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 10,
     },
-    commentAvatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: "#EAEBEE",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 10,
+    commentUser: {
+        fontFamily: 'Poppins-SemiBold',
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 4,
     },
-    commentAvatarText: { fontFamily: "Poppins-Bold", color: "#666" },
-    commentBody: {
-        flex: 1,
-        backgroundColor: "#F9F9F9",
-        padding: 10,
-        borderRadius: 10,
+    commentText: {
+        fontFamily: 'Poppins-Regular',
+        fontSize: 14,
+        color: '#636e72',
+        lineHeight: 20,
     },
-    commentUser: { fontFamily: "Poppins-SemiBold", marginBottom: 2 },
-    commentText: { fontFamily: "Poppins-Regular", color: "#555" },
     commentInputContainer: {
-        flexDirection: "row",
-        padding: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 15,
         borderTopWidth: 1,
-        borderTopColor: "#EAEBEE",
-        backgroundColor: "#fff",
-        alignItems: "center",
+        borderTopColor: '#F0F0F0',
+        paddingTop: 15,
     },
     commentInput: {
         flex: 1,
-        backgroundColor: "#F4F7FF",
+        backgroundColor: '#F4F7FF',
         borderRadius: 25,
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        fontFamily: "Poppins-Regular",
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        fontFamily: 'Poppins-Regular',
+        fontSize: 15,
+        marginRight: 10,
     },
     sendButton: {
-        marginLeft: 10,
-        width: 45,
-        height: 45,
-        borderRadius: 22.5,
-        backgroundColor: "#6A5AE0",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundColor: '#6A5AE0',
+        borderRadius: 25,
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

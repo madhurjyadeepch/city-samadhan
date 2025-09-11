@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-// <-- MODIFIED: Import SafeAreaView from the recommended library
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import CustomHeader from '../../components/CustomHeader';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
@@ -66,9 +64,11 @@ export default function ProfileScreen() {
     const displayEmail = profileData?.email || user?.email;
 
     return (
-        // <-- MODIFIED: Replaced View with SafeAreaView
         <SafeAreaView style={styles.container}>
-            <CustomHeader />
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Profile</Text>
+            </View>
+
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.profileHeader}>
                     <View style={styles.avatarPlaceholder}>
@@ -115,9 +115,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#F4F7FF',
     },
     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 10,
         backgroundColor: '#F4F7FF',
@@ -128,11 +125,13 @@ const styles = StyleSheet.create({
         color: '#2d3436',
     },
     scrollContainer: {
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 150,
     },
     profileHeader: {
         alignItems: 'center',
         marginBottom: 30,
+        marginTop: 10,
     },
     avatarPlaceholder: {
         width: 120,
@@ -154,18 +153,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-Bold',
         fontSize: 24,
         color: '#2d3436',
+        lineHeight: 32,
     },
     userEmail: {
         fontFamily: 'Poppins-Regular',
         fontSize: 16,
         color: '#636e72',
+        lineHeight: 24,
     },
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         backgroundColor: '#fff',
         borderRadius: 20,
-        padding: 20,
+        paddingVertical: 20, // Use vertical padding
+        paddingHorizontal: 10, // Use horizontal padding
         marginBottom: 30,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -175,11 +177,13 @@ const styles = StyleSheet.create({
     },
     statBox: {
         alignItems: 'center',
+        flex: 1, // Allow flex to distribute space
     },
     statNumber: {
         fontFamily: 'Poppins-Bold',
         fontSize: 20,
         color: '#6A5AE0',
+        lineHeight: 28,
     },
     statLabel: {
         fontFamily: 'Poppins-Regular',
@@ -187,11 +191,12 @@ const styles = StyleSheet.create({
         color: '#636e72',
         marginTop: 4,
         textAlign: 'center',
+        lineHeight: 20,
     },
     optionsSection: {
         backgroundColor: '#fff',
         borderRadius: 20,
-        padding: 10,
+        paddingHorizontal: 10, // Use horizontal padding
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -201,7 +206,7 @@ const styles = StyleSheet.create({
     optionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 15,
+        paddingVertical: 18, // Increased padding
         paddingHorizontal: 10,
     },
     optionIconContainer: {
@@ -218,13 +223,14 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins-SemiBold',
         fontSize: 16,
         color: '#333',
+        lineHeight: 24,
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 30,
-        padding: 15,
+        paddingVertical: 18, // Increased padding
         backgroundColor: '#FEF2F2',
         borderRadius: 20,
     },
@@ -233,5 +239,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#DC2626',
         marginLeft: 8,
+        lineHeight: 24,
     },
 });

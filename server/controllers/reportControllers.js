@@ -56,7 +56,8 @@ exports.getAllReports = catchAsync(async (req, res, next) => {
 });
 
 exports.getReportById = catchAsync(async (req, res, next) => {
-  const report = await Report.findById(req.params.id).populate("author");
+  const { reportId } = req.body;
+  const report = await Report.findById(reportId).populate("author");
   if (!report) {
     return next(new AppError("No report found with that ID", 404));
   }

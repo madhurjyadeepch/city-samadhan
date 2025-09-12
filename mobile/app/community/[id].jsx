@@ -1,5 +1,3 @@
-// app/my-reports/[id].jsx
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, Alert, TouchableOpacity, StatusBar, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,7 +21,7 @@ const dummyComments = [
 ];
 
 export default function ReportDetailScreen() {
-    const { id } = useLocalSearchParams();
+    const { id } = useLocalSearchParams(); // Get the report ID from the URL
     const router = useRouter();
     const [report, setReport] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +34,9 @@ export default function ReportDetailScreen() {
         const fetchReportDetails = async () => {
             if (!id) return;
             try {
-                const response = await api.get(`/api/v1/reports/${id}`);
+                // MODIFIED: Use a POST request to the /getOne endpoint
+                const response = await api.post(`/api/v1/reports/getOne`, { reportId: id });
+                
                 if (response.data.status === 'success') {
                     setReport(response.data.data.report);
                 } else {
@@ -120,7 +120,6 @@ export default function ReportDetailScreen() {
                     </View>
                 )}
 
-                {/* V V V NEW COMMENTS SECTION V V V */}
                 <View style={styles.card}>
                     <Text style={styles.cardSectionTitle}>Comments ({comments.length})</Text>
                     {comments.map((comment, index) => (
@@ -142,8 +141,6 @@ export default function ReportDetailScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-                {/* ^ ^ ^ NEW COMMENTS SECTION ^ ^ ^ */}
-
             </ScrollView>
         </SafeAreaView>
     );
@@ -171,49 +168,10 @@ const styles = StyleSheet.create({
     avatar: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#e0e7ff', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
     avatarText: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#6A5AE0' },
     authorName: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#2d3436' },
-    // --- NEW STYLES FOR COMMENTS ---
-    commentContainer: {
-        backgroundColor: '#F4F7FF',
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 10,
-    },
-    commentUser: {
-        fontFamily: 'Poppins-SemiBold',
-        fontSize: 14,
-        color: '#333',
-        marginBottom: 4,
-    },
-    commentText: {
-        fontFamily: 'Poppins-Regular',
-        fontSize: 14,
-        color: '#636e72',
-        lineHeight: 20,
-    },
-    commentInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 15,
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
-        paddingTop: 15,
-    },
-    commentInput: {
-        flex: 1,
-        backgroundColor: '#F4F7FF',
-        borderRadius: 25,
-        paddingVertical: 12,
-        paddingHorizontal: 18,
-        fontFamily: 'Poppins-Regular',
-        fontSize: 15,
-        marginRight: 10,
-    },
-    sendButton: {
-        backgroundColor: '#6A5AE0',
-        borderRadius: 25,
-        width: 50,
-        height: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    commentContainer: { backgroundColor: '#F4F7FF', borderRadius: 12, padding: 12, marginBottom: 10 },
+    commentUser: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#333', marginBottom: 4 },
+    commentText: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#636e72', lineHeight: 20 },
+    commentInputContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 15, borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 15 },
+    commentInput: { flex: 1, backgroundColor: '#F4F7FF', borderRadius: 25, paddingVertical: 12, paddingHorizontal: 18, fontFamily: 'Poppins-Regular', fontSize: 15, marginRight: 10 },
+    sendButton: { backgroundColor: '#6A5AE0', borderRadius: 25, width: 50, height: 50, justifyContent: 'center', alignItems: 'center' },
 });

@@ -15,12 +15,9 @@ app.use(cors());
 app.use("/uploads", express.static("uploads"));
 
 // Sample route
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
-app.use("/api/v1/users", userRouter);
 app.use("/api/v1/reports", reportRouter);
+app.use("/api/v1/users", userRouter);
 
 // app.all("*", (req, res, next) => {
 //   next(

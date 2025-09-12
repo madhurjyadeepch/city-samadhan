@@ -1,13 +1,15 @@
-// src/layouts/RootLayout.jsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import AppLayout from './AppLayout'; // Import the new layout
+import Navbar from '../components/Navbar';
 
 const RootLayout = ({ isSignedIn, setIsSignedIn }) => {
-  return isSignedIn ? (
-    <AppLayout isSignedIn={isSignedIn} setIsSignedIn={setIsSignedIn} />
-  ) : (
-    <Outlet />
+  return (
+    <div>
+      {isSignedIn && <Navbar setIsSignedIn={setIsSignedIn} />}
+      <main>
+        <Outlet />
+      </main>
+    </div>
   );
 };
 

@@ -1,21 +1,15 @@
-// src/components/Navbar.jsx
-
 import React from "react";
 import "./Navbar.css";
-// useNavigate is no longer needed with this method
-import { NavLink } from "react-router-dom"; 
+import { NavLink, useNavigate } from "react-router-dom";
 import LokSamadhanLogo2 from '../assets/LokSamadhanLogo2.png';
 
 const Navbar = ({ setIsSignedIn }) => {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
-    // 1. Clear the token from browser storage
     localStorage.removeItem('jwt');
-    
-    // 2. Update the app's state
     setIsSignedIn(false);
-    
-    // 3. Force the browser to navigate to the sign-in page and reload
-    window.location.href = '/signin';
+    navigate('/signin');
   };
 
   return (

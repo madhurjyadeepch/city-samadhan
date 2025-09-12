@@ -4,10 +4,13 @@ const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
 const reportRouter = require("./routes/reportRoutes");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 
 app.use(express.json());
+
+app.use(cors());
 // This makes files in the 'uploads' folder accessible via URL
 app.use("/uploads", express.static("uploads"));
 

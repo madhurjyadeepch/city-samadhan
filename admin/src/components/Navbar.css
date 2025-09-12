@@ -57,3 +57,19 @@ body {
   margin: 0;
   padding-top: 70px;
 }
+
+.logout-button {
+  font-family: 'Inter', sans-serif; /* Match the link font */
+  font-size: 24px; /* Match the link font size */
+  color: #DC2626; /* A distinct but professional red for logout */
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.3s ease;
+  font-weight: 600; /* Make it bold like the active link */
+}
+
+.logout-button:hover {
+  color: #a01c1c; /* Darker red on hover */
+}

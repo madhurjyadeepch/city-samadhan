@@ -28,7 +28,7 @@ exports.changeProgress = catchAsync(async (req, res, next) => {
     return next(new AppError("Please provide reportId and progress", 400));
   }
 
-  const validProgress = ["pending", "in-progress", "completed"];
+  const validProgress = ["pending", "in-progress", "resolved"];
   if (!validProgress.includes(progress)) {
     return next(new AppError("Invalid progress status", 400));
   }

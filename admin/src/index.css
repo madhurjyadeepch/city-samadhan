@@ -7,8 +7,22 @@
 }
 
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: black;
+    background-color: #F4F7FF;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding-top: 85px; /* Adjusted padding for the new navbar height */
+}
+
+.homepage-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+#community-reports-title {
+  font-family: 'Poppins-Bold', sans-serif;
+  font-size: 28px;
+  padding: 0 25px;
+  margin-bottom: 20px;
+  color: #2d3436;
 }

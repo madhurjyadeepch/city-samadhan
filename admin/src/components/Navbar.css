@@ -1,75 +1,82 @@
+
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;                  
-  background: rgba(238, 238, 238, 0.1); /* semi-transparent */
-  backdrop-filter: blur(10px) saturate(150%);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(234, 235, 238, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .navbar-content {
-  max-width: 1200px;            
-  margin: 0 auto;               
-  padding: 20px 30px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #4CAF50;
-  font-family: 'Inter', sans-serif;
 }
 
-.navbar-logo img{
-  width: 220px;
+.navbar-logo img {
+  width: 200px;
+  display: block;
+  transition: opacity 0.2s ease;
 }
 
 .navbar-logo:hover {
-    cursor: pointer;
+  cursor: pointer;
+  opacity: 0.85;
 }
 
 .navbar-links {
   list-style: none;
   display: flex;
-  gap: 30px;
+  gap: 20px;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 .navbar-links a {
+  font-family: 'Poppins', sans-serif;
   text-decoration: none;
-  color: black;
-  font-size: 24px;
-  transition: color 0.3s ease;
+  color: #636e72;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .navbar-links a.active {
-  color: #033c70;
-  font-weight: 600;
+  color: #6A5AE0;
+  background-color: #F0EEFF;
 }
 
 .navbar-links a:hover {
-  color: #033c70;
-}
-
-body {
-  margin: 0;
-  padding-top: 70px;
+  background-color: #F0EEFF;
+  color: #6A5AE0;
 }
 
 .logout-button {
-  font-family: 'Inter', sans-serif; /* Match the link font */
-  font-size: 24px; /* Match the link font size */
-  color: #DC2626; /* A distinct but professional red for logout */
-  background-color: transparent;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #DC2626;
+  background-color: #FEF2F2;
   border: none;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.3s ease;
-  font-weight: 600; /* Make it bold like the active link */
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  border-radius: 8px;
 }
 
 .logout-button:hover {
-  color: #a01c1c; /* Darker red on hover */
+  background-color: #ef4444;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
